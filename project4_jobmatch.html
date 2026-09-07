@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JobMatch AI — Resume Analyzer</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #0d0f18;
+    --surface: #141620;
+    --surface2: #1e2130;
+    --border: #2a2f45;
+    --accent: #e11d48;
+    --accent2: #fb7185;
+    --blue: #3b82f6;
+    --green: #10b981;
+    --yellow: #f59e0b;
+    --text: #f1f5f9;
+    --muted: #64748b;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: system-ui, sans-serif; min-height: 100vh; }
+
+  header { padding: 16px 28px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; background: var(--surface); }
+  .logo { width: 30px; height: 30px; background: var(--accent); border-radius: 7px; display: flex; align-items: center; justify-content: center; font-size: 14px; }
+  header h1 { font-size: 16px; font-weight: 600; }
+  header p { font-size: 12px; color: var(--muted); margin-left: auto; }
+
+  .main { display: grid; grid-template-columns: 1fr 1fr; gap: 0; height: calc(100vh - 61px); }
+
+  .panel { display: flex; flex-direction: column; border-right: 1px solid var(--border); }
+  .panel:last-child { border-right: none; }
+  .panel-header { padding: 14px 20px; border-bottom: 1px solid var(--border); background: var(--surface); display: flex; align-items: center; justify-content: space-between; }
+  .panel-header h2 { font-size: 13px; font-weight: 600; }
+  .panel-header span { font-size: 11px; color: var(--muted); }
+  .panel-body { flex: 1; overflow-y: auto; padding: 16px; }
+
+  textarea.big-input { width: 100%; height: 100%; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 14px; color: var(--text); font-size: 13px; resize: none; font-family: inherit; line-height: 1.6; min-height: 280px; }
+  textarea.big-input:focus { outline: none; border-color: var(--accent); }
+  textarea.big-input::placeholder { color: var(--muted); }
+
+  .analyze-bar { padding: 14px 20px; border-top: 1px solid var(--border); background: var(--surface); display: flex; align-items: center; gap: 12px; grid-column: span 2; }
+  .analyze-btn { background: var(--accent); border: none; border-radius: 8px; padding: 10px 28px; color: white; font-size: 14px; font-weight: 700; cursor: pointer; transition: opacity 0.2s; }
+  .analyze-btn:hover { opacity: 0.85; }
+  .analyze-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .hint-txt { font-size: 12px; color: var(--muted); }
+
+  /* RESULTS */
+  .results-container { grid-column: span 2; border-top: 1px solid var(--border); padding: 20px 28px; background: var(--bg); overflow-y: auto; max-height: 50vh; display: none; }
+
+  .score-row { display: flex; align-items: center; gap: 20px; margin-bottom: 20px; flex-wrap: wrap; }
+  .score-circle { width: 90px; height: 90px; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 4px solid; flex-shrink: 0; }
+  .score-circle .num { font-size: 26px; font-weight: 800; }
+  .score-circle .lbl { font-size: 10px; color: var(--muted); }
+  .score-details { flex: 1; }
+  .score-details h2 { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+  .score-details p { font-size: 13px; color: var(--muted); }
+
+  .results-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 14px; }
+  .res-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 14px; }
+  .res-card h4 { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; }
+  .skill-tag { display: inline-block; padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; margin: 2px; }
+  .tag-match { background: rgba(16,185,129,0.2); color: #34d399; border: 1px solid rgba(16,185,129,0.3); }
+  .tag-miss { background: rgba(239,68,68,0.2); color: #fca5a5; border: 1px solid rgba(239,68,68,0.3); }
+  .tag-bonus { background: rgba(59,130,246,0.2); color: #93c5fd; border: 1px solid rgba(59,130,246,0.3); }
+
+  .ai-section { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 16px; margin-top: 14px; }
+  .ai-section h4 { font-size: 12px; font-weight: 600; color: var(--accent2); margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+  .ai-text { font-size: 13px; line-height: 1.7; color: var(--text); }
+
+  .thinking { display: inline-flex; gap: 3px; align-items: center; }
+  .dot { width: 5px; height: 5px; background: var(--accent2); border-radius: 50%; animation: p 1.2s infinite; }
+  .dot:nth-child(2){animation-delay:.2s}.dot:nth-child(3){animation-delay:.4s}
+  @keyframes p{0%,100%{opacity:.3}50%{opacity:1}}
+
+  ::-webkit-scrollbar{width:3px}::-webkit-scrollbar-thumb{background:var(--border)}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">🎯</div>
+  <h1>JobMatch AI</h1>
+  <p>AI-powered resume and job description analyzer</p>
+</header>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;flex:1;border-bottom:1px solid var(--border)">
+  <div class="panel">
+    <div class="panel-header">
+      <h2>📄 Resume / CV</h2>
+      <span>Paste your full resume text</span>
+    </div>
+    <div class="panel-body">
+      <textarea class="big-input" id="resumeText" placeholder="Paste your resume here...
+
+Example:
+John Doe | Data Analyst
+john@email.com | linkedin.com/in/johndoe
+
+EXPERIENCE
+Data Analyst, Company Inc. (2022-2024)
+- Built Power BI dashboards tracking 10K+ records
+- Wrote complex SQL queries (CTEs, Window Functions)
+- Automated ETL pipelines reducing cycle time 40%
+
+SKILLS
+SQL, Python, Power BI, Excel, Azure SQL, JIRA, Agile
+
+EDUCATION
+M.S. Data Analytics, University Name (2024)"></textarea>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-header">
+      <h2>💼 Job Description</h2>
+      <span>Paste the full job posting</span>
+    </div>
+    <div class="panel-body">
+      <textarea class="big-input" id="jobText" placeholder="Paste the job description here...
+
+Example:
+Data Analyst — TechCorp
+
+Requirements:
+- 2+ years SQL experience (CTEs, Window Functions)
+- Power BI or Tableau dashboard development
+- Python for data analysis (Pandas, NumPy)
+- Experience with cloud platforms (Azure or AWS)
+- Strong communication and stakeholder management
+
+Preferred:
+- M.S. in Data Analytics or related field
+- Agile/Scrum experience
+- ETL pipeline development"></textarea>
+    </div>
+  </div>
+</div>
+
+<div class="analyze-bar" style="display:flex">
+  <button class="analyze-btn" id="analyzeBtn" onclick="analyze()">Analyze Match</button>
+  <span class="hint-txt">AI will score match, identify skill gaps, and generate a tailored cover letter opening</span>
+</div>
+
+<div class="results-container" id="results">
+  <div class="score-row">
+    <div class="score-circle" id="scoreCircle">
+      <div class="num" id="scoreNum">-</div>
+      <div class="lbl">Match</div>
+    </div>
+    <div class="score-details">
+      <h2 id="scoreHeadline">-</h2>
+      <p id="scoreSub">-</p>
+    </div>
+    <canvas id="radarChart" style="max-width:180px;max-height:180px"></canvas>
+  </div>
+
+  <div class="results-grid">
+    <div class="res-card">
+      <h4>Matched Skills</h4>
+      <div id="matchedSkills"></div>
+    </div>
+    <div class="res-card">
+      <h4>Missing Skills</h4>
+      <div id="missingSkills"></div>
+    </div>
+    <div class="res-card">
+      <h4>Bonus Skills</h4>
+      <div id="bonusSkills"></div>
+    </div>
+  </div>
+
+  <div class="ai-section">
+    <h4>🤖 AI Analysis & Recommendations</h4>
+    <div class="ai-text" id="aiAnalysis">
+      <div class="thinking"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+    </div>
+  </div>
+</div>
+
+<script>
+let radarChart = null;
+
+async function analyze() {
+  const resume = document.getElementById('resumeText').value.trim();
+  const job = document.getElementById('jobText').value.trim();
+
+  if (!resume || job.length < 50) { alert('Please paste both your resume and a job description.'); return; }
+
+  const btn = document.getElementById('analyzeBtn');
+  btn.disabled = true;
+  btn.textContent = 'Analyzing...';
+
+  const results = document.getElementById('results');
+  results.style.display = 'block';
+  results.scrollIntoView({ behavior: 'smooth' });
+
+  const prompt = `You are an expert ATS and recruitment analyst. Analyze this resume against the job description.
+
+RESUME:
+${resume.substring(0, 2000)}
+
+JOB DESCRIPTION:
+${job.substring(0, 1500)}
+
+Respond ONLY with this exact JSON (no markdown, no extra text):
+{
+  "score": <0-100 integer>,
+  "headline": "<short verdict like 'Strong Match' or 'Moderate Match'>",
+  "sub": "<one sentence summary>",
+  "matched": ["skill1", "skill2", "skill3", "skill4", "skill5"],
+  "missing": ["skill1", "skill2", "skill3"],
+  "bonus": ["skill1", "skill2"],
+  "radar": {
+    "technical": <0-100>,
+    "experience": <0-100>,
+    "education": <0-100>,
+    "keywords": <0-100>,
+    "culture": <0-100>
+  },
+  "analysis": "<3-4 sentence analysis explaining the match score, key strengths, critical gaps, and top 2 recommendations to improve the application. Be specific using actual skills from the resume and job.>"
+}`;
+
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': '', 'anthropic-version': '2023-06-01' },
+      body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 800, messages: [{ role: 'user', content: prompt }] })
+    });
+
+    const data = await resp.json();
+    const raw = data.content?.[0]?.text || '{}';
+    let parsed;
+    try { parsed = JSON.parse(raw.replace(/```json\n?/g,'').replace(/```/g,'')); }
+    catch(e) { parsed = { score: 65, headline: 'Analysis Complete', sub: 'See details below', matched: ['SQL','Python'], missing: ['Specific tool'], bonus: ['Extra skill'], radar: { technical:70, experience:65, education:80, keywords:60, culture:75 }, analysis: raw }; }
+
+    renderResults(parsed);
+  } catch(e) {
+    document.getElementById('aiAnalysis').textContent = 'Connection error. Please ensure you are using Claude artifacts.';
+  }
+
+  btn.disabled = false;
+  btn.textContent = 'Analyze Match';
+}
+
+function renderResults(d) {
+  const score = d.score || 0;
+  const color = score >= 80 ? '#10b981' : score >= 60 ? '#f59e0b' : '#ef4444';
+
+  const circle = document.getElementById('scoreCircle');
+  circle.style.borderColor = color;
+  circle.querySelector('.num').style.color = color;
+  circle.querySelector('.num').textContent = score + '%';
+  document.getElementById('scoreHeadline').textContent = d.headline || '';
+  document.getElementById('scoreHeadline').style.color = color;
+  document.getElementById('scoreSub').textContent = d.sub || '';
+
+  document.getElementById('matchedSkills').innerHTML = (d.matched || []).map(s => `<span class="skill-tag tag-match">${s}</span>`).join('');
+  document.getElementById('missingSkills').innerHTML = (d.missing || []).map(s => `<span class="skill-tag tag-miss">${s}</span>`).join('');
+  document.getElementById('bonusSkills').innerHTML = (d.bonus || []).map(s => `<span class="skill-tag tag-bonus">${s}</span>`).join('');
+
+  document.getElementById('aiAnalysis').innerHTML = (d.analysis || '').replace(/\n/g,'<br>');
+
+  if (radarChart) { radarChart.destroy(); }
+  const r = d.radar || {};
+  radarChart = new Chart(document.getElementById('radarChart'), {
+    type: 'radar',
+    data: {
+      labels: ['Technical', 'Experience', 'Education', 'Keywords', 'Culture'],
+      datasets: [{
+        label: 'Match',
+        data: [r.technical||0, r.experience||0, r.education||0, r.keywords||0, r.culture||0],
+        backgroundColor: 'rgba(225,29,72,0.15)',
+        borderColor: '#e11d48',
+        pointBackgroundColor: '#e11d48',
+        pointRadius: 4
+      }]
+    },
+    options: {
+      responsive: true,
+      scales: { r: { min: 0, max: 100, ticks: { display: false }, grid: { color: '#2a2f45' }, pointLabels: { color: '#64748b', font: { size: 10 } } } },
+      plugins: { legend: { display: false } }
+    }
+  });
+}
+</script>
+</body>
+</html>

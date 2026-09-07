@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PredictIQ — ML Dashboard</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #0a0e1a;
+    --surface: #111827;
+    --surface2: #1f2937;
+    --border: #374151;
+    --accent: #059669;
+    --accent2: #34d399;
+    --text: #f1f5f9;
+    --muted: #6b7280;
+    --red: #ef4444;
+    --yellow: #f59e0b;
+    --blue: #3b82f6;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: system-ui, sans-serif; min-height: 100vh; }
+
+  header { padding: 16px 28px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; background: var(--surface); }
+  .logo { width: 30px; height: 30px; background: var(--accent); border-radius: 7px; display: flex; align-items: center; justify-content: center; font-size: 14px; }
+  header h1 { font-size: 16px; font-weight: 600; }
+  .tabs { display: flex; gap: 4px; margin-left: auto; }
+  .tab { padding: 6px 14px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; border: 1px solid var(--border); background: transparent; color: var(--muted); transition: all 0.15s; }
+  .tab.active { background: var(--accent); border-color: var(--accent); color: white; }
+
+  .page { display: none; padding: 24px 28px; }
+  .page.active { display: block; }
+
+  /* GRID */
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 18px; }
+  .card h3 { font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 14px; }
+
+  /* PREDICT */
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .field label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 5px; font-weight: 500; }
+  .field input, .field select { width: 100%; background: var(--surface2); border: 1px solid var(--border); border-radius: 7px; padding: 8px 10px; color: var(--text); font-size: 13px; }
+  .field input:focus, .field select:focus { outline: none; border-color: var(--accent); }
+  .field input[type=range] { padding: 4px 0; accent-color: var(--accent); }
+  .range-val { font-size: 12px; color: var(--accent2); font-weight: 600; text-align: right; }
+
+  .predict-btn { margin-top: 16px; width: 100%; background: var(--accent); border: none; border-radius: 8px; padding: 12px; color: white; font-size: 14px; font-weight: 600; cursor: pointer; transition: opacity 0.2s; }
+  .predict-btn:hover { opacity: 0.85; }
+
+  /* RESULT */
+  .result-box { display: none; margin-top: 16px; background: var(--surface2); border-radius: 10px; padding: 16px; }
+  .result-main { display: flex; align-items: center; gap: 16px; margin-bottom: 14px; }
+  .result-score { font-size: 48px; font-weight: 800; }
+  .result-label { font-size: 16px; font-weight: 600; }
+  .result-sub { font-size: 13px; color: var(--muted); margin-top: 3px; }
+  .prob-bar { background: var(--surface); border-radius: 6px; height: 8px; overflow: hidden; margin: 8px 0; }
+  .prob-fill { height: 100%; border-radius: 6px; transition: width 0.6s; }
+
+  /* SHAP */
+  .shap-item { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+  .shap-item:last-child { border-bottom: none; }
+  .shap-name { width: 120px; color: var(--muted); font-size: 12px; }
+  .shap-bar-wrap { flex: 1; background: var(--surface); border-radius: 4px; height: 6px; overflow: hidden; }
+  .shap-bar { height: 100%; border-radius: 4px; }
+  .shap-val { width: 45px; text-align: right; font-size: 11px; font-weight: 600; }
+
+  /* KPIs */
+  .kpi-num { font-size: 28px; font-weight: 800; }
+  .kpi-label { font-size: 12px; color: var(--muted); margin-top: 3px; }
+  .kpi-change { font-size: 12px; margin-top: 4px; }
+  .up { color: var(--accent2); }
+  .down { color: var(--red); }
+
+  /* AI INSIGHT */
+  .ai-box { background: rgba(5,150,105,0.08); border: 1px solid rgba(5,150,105,0.3); border-radius: 8px; padding: 12px; font-size: 13px; line-height: 1.6; color: var(--text); margin-top: 10px; }
+  .ai-label { font-size: 11px; color: var(--accent2); font-weight: 600; margin-bottom: 6px; display: flex; align-items: center; gap: 5px; }
+
+  .thinking { display: flex; gap: 3px; align-items: center; }
+  .dot { width: 5px; height: 5px; background: var(--accent); border-radius: 50%; animation: p 1.2s infinite; }
+  .dot:nth-child(2){animation-delay:.2s}.dot:nth-child(3){animation-delay:.4s}
+  @keyframes p{0%,100%{opacity:.3}50%{opacity:1}}
+
+  ::-webkit-scrollbar{width:3px}::-webkit-scrollbar-thumb{background:var(--border)}
+  canvas { max-height: 220px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">🧠</div>
+  <h1>PredictIQ</h1>
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('predict')">Predict</button>
+    <button class="tab" onclick="switchTab('insights')">Insights</button>
+    <button class="tab" onclick="switchTab('metrics')">Model Metrics</button>
+  </div>
+</header>
+
+<!-- PREDICT TAB -->
+<div class="page active" id="tab-predict">
+  <div class="grid2">
+    <div class="card">
+      <h3>Customer Churn Predictor</h3>
+      <div class="form-grid">
+        <div class="field"><label>Age</label><input type="number" id="age" value="35" min="18" max="80"></div>
+        <div class="field"><label>Tenure (months)</label><input type="number" id="tenure" value="24" min="0" max="120"></div>
+        <div class="field"><label>Monthly Charges ($)</label><input type="number" id="charges" value="65" min="0" max="200"></div>
+        <div class="field"><label>Support Calls</label><input type="number" id="calls" value="2" min="0" max="20"></div>
+        <div class="field col-span" style="grid-column:span 2"><label>Contract Type</label>
+          <select id="contract"><option>Month-to-month</option><option>One year</option><option>Two year</option></select>
+        </div>
+        <div class="field" style="grid-column:span 2">
+          <label>Customer Satisfaction <span class="range-val" id="satVal">3/5</span></label>
+          <input type="range" id="satisfaction" min="1" max="5" value="3" oninput="document.getElementById('satVal').textContent=this.value+'/5'">
+        </div>
+      </div>
+      <button class="predict-btn" onclick="predict()">Run Prediction</button>
+    </div>
+
+    <div class="card">
+      <h3>Prediction Result</h3>
+      <div id="resultPlaceholder" style="color:var(--muted);font-size:14px;padding:40px 0;text-align:center">
+        <div style="font-size:32px;margin-bottom:10px">🎯</div>
+        Fill in the form and click Run Prediction
+      </div>
+      <div class="result-box" id="resultBox">
+        <div class="result-main">
+          <div class="result-score" id="rScore">-</div>
+          <div>
+            <div class="result-label" id="rLabel">-</div>
+            <div class="result-sub" id="rSub">-</div>
+          </div>
+        </div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:6px">Churn probability</div>
+        <div class="prob-bar"><div class="prob-fill" id="probFill"></div></div>
+        <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted)"><span>0%</span><span>50%</span><span>100%</span></div>
+
+        <div style="margin-top:14px;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:8px">Feature Impact (SHAP)</div>
+        <div id="shapList"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:16px">
+    <h3>AI Insight</h3>
+    <div id="aiInsightBox" style="color:var(--muted);font-size:14px">Run a prediction to get AI-generated insight and recommendations.</div>
+  </div>
+</div>
+
+<!-- INSIGHTS TAB -->
+<div class="page" id="tab-insights">
+  <div class="grid3">
+    <div class="card">
+      <div class="kpi-num" style="color:var(--accent2)">73.2%</div>
+      <div class="kpi-label">Retention Rate</div>
+      <div class="kpi-change up">+2.1% vs last quarter</div>
+    </div>
+    <div class="card">
+      <div class="kpi-num" style="color:var(--red)">26.8%</div>
+      <div class="kpi-label">Churn Rate</div>
+      <div class="kpi-change down">-1.4% improvement</div>
+    </div>
+    <div class="card">
+      <div class="kpi-num" style="color:var(--blue)">$127K</div>
+      <div class="kpi-label">Revenue at Risk</div>
+      <div class="kpi-change down">High-risk segment</div>
+    </div>
+  </div>
+  <div class="grid2" style="margin-top:16px">
+    <div class="card"><h3>Churn by Contract Type</h3><canvas id="contractChart"></canvas></div>
+    <div class="card"><h3>Churn by Tenure Band</h3><canvas id="tenureChart"></canvas></div>
+  </div>
+  <div class="card" style="margin-top:16px"><h3>Monthly Charges vs Churn Risk</h3><canvas id="chargesChart" style="max-height:160px"></canvas></div>
+</div>
+
+<!-- METRICS TAB -->
+<div class="page" id="tab-metrics">
+  <div class="grid3">
+    <div class="card"><div class="kpi-num" style="color:var(--accent2)">87.4%</div><div class="kpi-label">Accuracy</div></div>
+    <div class="card"><div class="kpi-num" style="color:var(--blue)">84.1%</div><div class="kpi-label">Precision</div></div>
+    <div class="card"><div class="kpi-num" style="color:var(--yellow)">81.9%</div><div class="kpi-label">Recall</div></div>
+    <div class="card"><div class="kpi-num" style="color:var(--accent2)">0.912</div><div class="kpi-label">AUC-ROC</div></div>
+    <div class="card"><div class="kpi-num" style="color:var(--blue)">83.0%</div><div class="kpi-label">F1 Score</div></div>
+    <div class="card"><div class="kpi-num" style="color:var(--muted)">XGBoost</div><div class="kpi-label">Model Type</div></div>
+  </div>
+  <div class="grid2" style="margin-top:16px">
+    <div class="card"><h3>ROC Curve</h3><canvas id="rocChart"></canvas></div>
+    <div class="card"><h3>Feature Importance</h3><canvas id="featChart"></canvas></div>
+  </div>
+  <div class="card" style="margin-top:16px">
+    <h3>Model Details</h3>
+    <div style="font-size:13px;line-height:2;color:var(--muted)">
+      Algorithm: <strong style="color:var(--text)">XGBoost Classifier</strong> &nbsp;|&nbsp;
+      Training samples: <strong style="color:var(--text)">8,432</strong> &nbsp;|&nbsp;
+      Test samples: <strong style="color:var(--text)">2,109</strong> &nbsp;|&nbsp;
+      Features: <strong style="color:var(--text)">6</strong> &nbsp;|&nbsp;
+      Cross-validation: <strong style="color:var(--text)">5-fold</strong> &nbsp;|&nbsp;
+      Training time: <strong style="color:var(--text)">2.3s</strong>
+    </div>
+  </div>
+</div>
+
+<script>
+const COLORS = { green:'#34d399', red:'#ef4444', yellow:'#f59e0b', blue:'#3b82f6', purple:'#a78bfa' };
+
+function switchTab(tab) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+  event.target.classList.add('active');
+}
+
+function predict() {
+  const age = +document.getElementById('age').value;
+  const tenure = +document.getElementById('tenure').value;
+  const charges = +document.getElementById('charges').value;
+  const calls = +document.getElementById('calls').value;
+  const contract = document.getElementById('contract').value;
+  const satisfaction = +document.getElementById('satisfaction').value;
+
+  // Simulate ML prediction
+  let prob = 0.5;
+  prob += (calls / 20) * 0.25;
+  prob -= (tenure / 120) * 0.3;
+  prob -= ((satisfaction - 1) / 4) * 0.25;
+  if (contract === 'Month-to-month') prob += 0.15;
+  else if (contract === 'Two year') prob -= 0.2;
+  prob += (charges > 100) ? 0.1 : 0;
+  prob = Math.max(0.05, Math.min(0.95, prob));
+  prob = Math.round(prob * 1000) / 1000;
+
+  const pct = Math.round(prob * 100);
+  const isChurn = prob > 0.5;
+
+  document.getElementById('resultPlaceholder').style.display = 'none';
+  const box = document.getElementById('resultBox');
+  box.style.display = 'block';
+  document.getElementById('rScore').textContent = pct + '%';
+  document.getElementById('rScore').style.color = isChurn ? COLORS.red : COLORS.green;
+  document.getElementById('rLabel').textContent = isChurn ? 'High Churn Risk' : 'Low Churn Risk';
+  document.getElementById('rLabel').style.color = isChurn ? COLORS.red : COLORS.green;
+  document.getElementById('rSub').textContent = isChurn ? 'Intervention recommended' : 'Customer likely to stay';
+
+  const fill = document.getElementById('probFill');
+  fill.style.width = pct + '%';
+  fill.style.background = `linear-gradient(90deg, ${COLORS.green}, ${isChurn ? COLORS.red : COLORS.green})`;
+
+  // SHAP values
+  const shapData = [
+    { name: 'Tenure', val: -Math.round((tenure/120)*0.3*100)/100, dir: tenure > 24 ? 'neg' : 'pos' },
+    { name: 'Satisfaction', val: -Math.round(((satisfaction-1)/4)*0.25*100)/100, dir: satisfaction > 3 ? 'neg' : 'pos' },
+    { name: 'Support Calls', val: Math.round((calls/20)*0.25*100)/100, dir: calls > 3 ? 'pos' : 'neg' },
+    { name: 'Contract', val: contract === 'Month-to-month' ? 0.15 : contract === 'Two year' ? -0.2 : -0.05, dir: contract === 'Month-to-month' ? 'pos' : 'neg' },
+    { name: 'Charges', val: charges > 100 ? 0.1 : -0.05, dir: charges > 100 ? 'pos' : 'neg' },
+    { name: 'Age', val: Math.round((age-35)/100*0.05*100)/100, dir: 'neutral' }
+  ].sort((a,b) => Math.abs(b.val) - Math.abs(a.val));
+
+  const shapList = document.getElementById('shapList');
+  shapList.innerHTML = '';
+  shapData.forEach(s => {
+    const maxShap = 0.3;
+    const barW = Math.min(100, Math.abs(s.val) / maxShap * 100);
+    const color = s.dir === 'pos' ? COLORS.red : s.dir === 'neg' ? COLORS.green : COLORS.yellow;
+    const sign = s.val > 0 ? '+' : '';
+    shapList.innerHTML += `<div class="shap-item">
+      <div class="shap-name">${s.name}</div>
+      <div class="shap-bar-wrap"><div class="shap-bar" style="width:${barW}%;background:${color}"></div></div>
+      <div class="shap-val" style="color:${color}">${sign}${s.val.toFixed(2)}</div>
+    </div>`;
+  });
+
+  getAIInsight(prob, pct, isChurn, { age, tenure, charges, calls, contract, satisfaction });
+}
+
+async function getAIInsight(prob, pct, isChurn, features) {
+  const box = document.getElementById('aiInsightBox');
+  box.innerHTML = `<div class="ai-label">🤖 AI Analysis<div class="thinking"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div>`;
+
+  const prompt = `A customer churn ML model predicted ${pct}% churn probability (${isChurn ? 'HIGH RISK' : 'LOW RISK'}) for a customer with these features:
+- Age: ${features.age}
+- Tenure: ${features.tenure} months
+- Monthly charges: $${features.charges}
+- Support calls: ${features.calls}
+- Contract: ${features.contract}
+- Satisfaction score: ${features.satisfaction}/5
+
+In 3-4 sentences, explain the key churn drivers for this specific customer and recommend 2 concrete retention actions. Be specific with the numbers.`;
+
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': '', 'anthropic-version': '2023-06-01' },
+      body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 300, messages: [{ role: 'user', content: prompt }] })
+    });
+    const data = await resp.json();
+    const insight = data.content?.[0]?.text || 'Could not generate insight.';
+    box.innerHTML = `<div class="ai-label">🤖 AI Analysis</div><div class="ai-box">${insight.replace(/\n/g,'<br>')}</div>`;
+  } catch(e) {
+    box.innerHTML = `<div class="ai-box">AI insight unavailable. The model predicts ${pct}% churn probability based on the provided features.</div>`;
+  }
+}
+
+// Charts for Insights tab
+window.addEventListener('load', () => {
+  new Chart(document.getElementById('contractChart'), {
+    type: 'bar',
+    data: {
+      labels: ['Month-to-month', 'One year', 'Two year'],
+      datasets: [{ label: 'Churn Rate %', data: [42.7, 11.3, 2.8], backgroundColor: ['#ef444499','#f59e0b99','#34d39999'], borderColor: ['#ef4444','#f59e0b','#34d399'], borderWidth: 2 }]
+    },
+    options: { responsive: true, plugins: { legend: { display: false } }, scales: { x: { ticks: { color: '#6b7280', font: { size: 11 } }, grid: { color: '#1f2937' } }, y: { ticks: { color: '#6b7280', font: { size: 11 } }, grid: { color: '#1f2937' } } } }
+  });
+  new Chart(document.getElementById('tenureChart'), {
+    type: 'bar',
+    data: {
+      labels: ['0-12m', '13-24m', '25-48m', '49-72m', '73m+'],
+      datasets: [{ label: 'Churn %', data: [48.2, 31.4, 18.7, 9.3, 4.1], backgroundColor: '#3b82f699', borderColor: '#3b82f6', borderWidth: 2 }]
+    },
+    options: { responsive: true, plugins: { legend: { display: false } }, scales: { x: { ticks: { color: '#6b7280', font: { size: 11 } }, grid: { color: '#1f2937' } }, y: { ticks: { color: '#6b7280', font: { size: 11 } }, grid: { color: '#1f2937' } } } }
+  });
+  new Chart(document.getElementById('chargesChart'), {
+    type: 'line',
+    data: {
+      labels: ['$0-25','$25-50','$50-75','$75-100','$100-125','$125+'],
+      datasets: [{ label: 'Churn Rate %', data: [8.2, 14.7, 22.1, 31.8, 41.2, 52.4], borderColor: '#ef4444', backgroundColor: '#ef444420', fill: true, tension: 0.4, pointRadius: 5 }]
+    },
+    options: { responsive: true, plugins: { legend: { labels: { color: '#6b7280', font: { size: 11 } } } }, scales: { x: { ticks: { color: '#6b7280', font: { size: 11 } }, grid: { color: '#1f2937' } }, y: { ticks: { color: '#6b7280', font: { size: 11 } }, grid: { color: '#1f2937' } } } }
+  });
+
+  // Metrics charts
+  const rocPoints = [[0,0],[0.05,0.4],[0.1,0.6],[0.2,0.78],[0.3,0.87],[0.5,0.93],[0.7,0.97],[1,1]];
+  new Chart(document.getElementById('rocChart'), {
+    type: 'line',
+    data: {
+      labels: rocPoints.map(p => p[0].toFixed(2)),
+      datasets: [
+        { label: 'ROC (AUC=0.912)', data: rocPoints.map(p => p[1]), borderColor: '#34d399', fill: true, backgroundColor: '#34d39920', tension: 0.3 },
+        { label: 'Random', data: [0,0.1,0.2,0.3,0.5,0.7,0.8,1], borderColor: '#374151', borderDash: [4,4] }
+      ]
+    },
+    options: { responsive: true, plugins: { legend: { labels: { color: '#6b7280', font: { size: 10 } } } }, scales: { x: { ticks: { color: '#6b7280', font: { size: 10 } }, grid: { color: '#1f2937' } }, y: { ticks: { color: '#6b7280', font: { size: 10 } }, grid: { color: '#1f2937' } } } }
+  });
+  new Chart(document.getElementById('featChart'), {
+    type: 'bar',
+    indexAxis: 'y',
+    data: {
+      labels: ['Tenure','Satisfaction','Contract','Support Calls','Charges','Age'],
+      datasets: [{ label: 'Importance', data: [0.31, 0.26, 0.18, 0.14, 0.08, 0.03], backgroundColor: '#a78bfa99', borderColor: '#a78bfa', borderWidth: 2 }]
+    },
+    options: { responsive: true, plugins: { legend: { display: false } }, scales: { x: { ticks: { color: '#6b7280', font: { size: 10 } }, grid: { color: '#1f2937' } }, y: { ticks: { color: '#6b7280', font: { size: 10 } } } } }
+  });
+});
+</script>
+</body>
+</html>

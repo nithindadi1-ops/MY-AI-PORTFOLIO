@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DataChat — AI Data Analyst</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #222536;
+    --border: #2e3248;
+    --accent: #6366f1;
+    --accent2: #818cf8;
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --green: #10b981;
+    --red: #ef4444;
+    --yellow: #f59e0b;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Inter', system-ui, sans-serif; min-height: 100vh; }
+
+  /* HEADER */
+  header { padding: 20px 32px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 12px; background: var(--surface); }
+  .logo { width: 32px; height: 32px; background: var(--accent); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+  header h1 { font-size: 18px; font-weight: 600; letter-spacing: -0.3px; }
+  header span { color: var(--muted); font-size: 13px; margin-left: auto; }
+
+  /* LAYOUT */
+  .app { display: grid; grid-template-columns: 320px 1fr; height: calc(100vh - 65px); }
+
+  /* SIDEBAR */
+  .sidebar { background: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; overflow-y: auto; }
+  .sidebar-section { padding: 20px; border-bottom: 1px solid var(--border); }
+  .sidebar-section h3 { font-size: 11px; font-weight: 600; color: var(--muted); letter-spacing: 0.8px; text-transform: uppercase; margin-bottom: 12px; }
+
+  /* UPLOAD */
+  .upload-zone { border: 2px dashed var(--border); border-radius: 10px; padding: 24px 16px; text-align: center; cursor: pointer; transition: all 0.2s; }
+  .upload-zone:hover, .upload-zone.drag { border-color: var(--accent); background: rgba(99,102,241,0.05); }
+  .upload-zone .icon { font-size: 28px; margin-bottom: 8px; }
+  .upload-zone p { font-size: 13px; color: var(--muted); line-height: 1.5; }
+  .upload-zone strong { color: var(--accent2); }
+  input[type=file] { display: none; }
+
+  /* DATASET INFO */
+  .dataset-info { display: none; }
+  .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .info-card { background: var(--surface2); border-radius: 8px; padding: 10px; }
+  .info-card .val { font-size: 20px; font-weight: 700; color: var(--accent2); }
+  .info-card .lbl { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+  /* COLUMNS */
+  .col-list { display: flex; flex-direction: column; gap: 4px; max-height: 200px; overflow-y: auto; }
+  .col-item { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 6px; background: var(--surface2); font-size: 12px; }
+  .col-badge { font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: 600; }
+  .badge-num { background: rgba(99,102,241,0.2); color: var(--accent2); }
+  .badge-str { background: rgba(16,185,129,0.2); color: var(--green); }
+  .badge-date { background: rgba(245,158,11,0.2); color: var(--yellow); }
+
+  /* SUGGESTIONS */
+  .suggestions { display: flex; flex-direction: column; gap: 6px; }
+  .suggestion-btn { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; font-size: 12px; color: var(--text); cursor: pointer; text-align: left; transition: all 0.15s; }
+  .suggestion-btn:hover { border-color: var(--accent); color: var(--accent2); }
+
+  /* MAIN */
+  .main { display: flex; flex-direction: column; overflow: hidden; }
+
+  /* MESSAGES */
+  .messages { flex: 1; overflow-y: auto; padding: 24px; display: flex; flex-direction: column; gap: 20px; }
+  .welcome { text-align: center; padding: 60px 32px; }
+  .welcome .big { font-size: 32px; margin-bottom: 12px; }
+  .welcome h2 { font-size: 22px; font-weight: 600; margin-bottom: 8px; }
+  .welcome p { color: var(--muted); font-size: 15px; max-width: 420px; margin: 0 auto; line-height: 1.6; }
+
+  .message { display: flex; gap: 12px; align-items: flex-start; }
+  .message.user { flex-direction: row-reverse; }
+  .avatar { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
+  .avatar.ai { background: var(--accent); }
+  .avatar.user { background: var(--surface2); border: 1px solid var(--border); }
+  .bubble { max-width: 75%; }
+  .message.user .bubble { align-items: flex-end; }
+  .bubble-content { background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 12px 16px; font-size: 14px; line-height: 1.6; }
+  .message.user .bubble-content { background: var(--accent); border-color: var(--accent); }
+  .bubble-meta { font-size: 11px; color: var(--muted); margin-top: 4px; padding: 0 4px; }
+
+  /* CODE BLOCK */
+  .code-block { background: #0a0c14; border: 1px solid var(--border); border-radius: 8px; padding: 12px; font-family: 'Fira Code', monospace; font-size: 12px; color: #a9c4e4; margin: 8px 0; overflow-x: auto; white-space: pre; }
+
+  /* CHART */
+  .chart-wrap { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin: 8px 0; }
+  .chart-wrap h4 { font-size: 13px; color: var(--muted); margin-bottom: 12px; }
+  .chart-wrap canvas { max-height: 240px; }
+
+  /* STATS TABLE */
+  .stats-table { width: 100%; border-collapse: collapse; font-size: 12px; margin: 8px 0; }
+  .stats-table th { text-align: left; color: var(--muted); font-weight: 500; padding: 6px 10px; border-bottom: 1px solid var(--border); }
+  .stats-table td { padding: 6px 10px; border-bottom: 1px solid var(--border); color: var(--text); }
+  .stats-table tr:last-child td { border-bottom: none; }
+
+  /* THINKING */
+  .thinking { display: flex; gap: 4px; align-items: center; padding: 12px 16px; }
+  .dot { width: 6px; height: 6px; background: var(--accent); border-radius: 50%; animation: pulse 1.2s infinite; }
+  .dot:nth-child(2) { animation-delay: 0.2s; }
+  .dot:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes pulse { 0%,100%{opacity:0.3;transform:scale(0.8)} 50%{opacity:1;transform:scale(1)} }
+
+  /* INPUT */
+  .input-area { padding: 16px 24px; border-top: 1px solid var(--border); background: var(--surface); }
+  .input-row { display: flex; gap: 10px; align-items: flex-end; }
+  textarea { flex: 1; background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; color: var(--text); font-size: 14px; resize: none; font-family: inherit; line-height: 1.5; min-height: 46px; max-height: 120px; transition: border 0.2s; }
+  textarea:focus { outline: none; border-color: var(--accent); }
+  textarea::placeholder { color: var(--muted); }
+  .send-btn { background: var(--accent); border: none; border-radius: 10px; width: 46px; height: 46px; color: white; cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center; transition: background 0.2s; flex-shrink: 0; }
+  .send-btn:hover { background: var(--accent2); }
+  .send-btn:disabled { background: var(--muted); cursor: not-allowed; }
+  .input-hint { font-size: 11px; color: var(--muted); margin-top: 8px; text-align: center; }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">📊</div>
+  <h1>DataChat</h1>
+  <span>AI Data Analyst — Powered by Claude</span>
+</header>
+
+<div class="app">
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-section">
+      <h3>Dataset</h3>
+      <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()" ondragover="handleDrag(event)" ondrop="handleDrop(event)">
+        <div class="icon">📂</div>
+        <p>Drop a <strong>CSV file</strong> here or click to upload</p>
+      </div>
+      <input type="file" id="fileInput" accept=".csv" onchange="handleFile(event)">
+    </div>
+
+    <div class="sidebar-section dataset-info" id="datasetInfo">
+      <h3>Overview</h3>
+      <div class="info-grid">
+        <div class="info-card"><div class="val" id="rowCount">0</div><div class="lbl">Rows</div></div>
+        <div class="info-card"><div class="val" id="colCount">0</div><div class="lbl">Columns</div></div>
+      </div>
+    </div>
+
+    <div class="sidebar-section dataset-info" id="colSection">
+      <h3>Columns</h3>
+      <div class="col-list" id="colList"></div>
+    </div>
+
+    <div class="sidebar-section dataset-info" id="suggestSection">
+      <h3>Try asking</h3>
+      <div class="suggestions" id="suggestions"></div>
+    </div>
+  </div>
+
+  <!-- MAIN CHAT -->
+  <div class="main">
+    <div class="messages" id="messages">
+      <div class="welcome" id="welcome">
+        <div class="big">📊</div>
+        <h2>Upload a CSV to get started</h2>
+        <p>Drop any CSV file in the sidebar. Then ask questions in plain English — I will analyze your data, explain patterns, and build charts.</p>
+      </div>
+    </div>
+    <div class="input-area">
+      <div class="input-row">
+        <textarea id="msgInput" placeholder="Ask anything about your data..." rows="1" disabled onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+        <button class="send-btn" id="sendBtn" disabled onclick="sendMessage()">↑</button>
+      </div>
+      <div class="input-hint">Press Enter to send, Shift+Enter for new line</div>
+    </div>
+  </div>
+</div>
+
+<script>
+let df = null;
+let dfSummary = '';
+let chartInstances = {};
+let messageHistory = [];
+
+function handleDrag(e) { e.preventDefault(); document.getElementById('uploadZone').classList.add('drag'); }
+function handleDrop(e) {
+  e.preventDefault();
+  document.getElementById('uploadZone').classList.remove('drag');
+  const file = e.dataTransfer.files[0];
+  if (file && file.name.endsWith('.csv')) processFile(file);
+}
+function handleFile(e) { processFile(e.target.files[0]); }
+
+function processFile(file) {
+  Papa.parse(file, {
+    header: true, skipEmptyLines: true, dynamicTyping: true,
+    complete: function(results) {
+      df = results.data;
+      const cols = results.meta.fields;
+      setupDataset(df, cols, file.name);
+    }
+  });
+}
+
+function detectType(col, data) {
+  const vals = data.map(r => r[col]).filter(v => v !== null && v !== '');
+  const nums = vals.filter(v => typeof v === 'number');
+  if (nums.length > vals.length * 0.7) return 'num';
+  const dates = vals.filter(v => typeof v === 'string' && !isNaN(Date.parse(v)));
+  if (dates.length > vals.length * 0.5) return 'date';
+  return 'str';
+}
+
+function setupDataset(data, cols, filename) {
+  document.getElementById('rowCount').textContent = data.length.toLocaleString();
+  document.getElementById('colCount').textContent = cols.length;
+  document.querySelectorAll('.dataset-info').forEach(el => el.style.display = 'block');
+
+  const colList = document.getElementById('colList');
+  colList.innerHTML = '';
+  const colTypes = {};
+  cols.forEach(col => {
+    const type = detectType(col, data);
+    colTypes[col] = type;
+    const item = document.createElement('div');
+    item.className = 'col-item';
+    item.innerHTML = `<span class="col-badge badge-${type}">${type === 'num' ? '123' : type === 'date' ? 'DATE' : 'ABC'}</span><span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${col}</span>`;
+    colList.appendChild(item);
+  });
+
+  const numCols = cols.filter(c => colTypes[c] === 'num');
+  const strCols = cols.filter(c => colTypes[c] === 'str');
+
+  // Build summary for AI
+  const sample = data.slice(0, 5);
+  const stats = {};
+  numCols.forEach(col => {
+    const vals = data.map(r => r[col]).filter(v => typeof v === 'number');
+    const sum = vals.reduce((a,b) => a+b, 0);
+    const mean = sum / vals.length;
+    const sorted = [...vals].sort((a,b) => a-b);
+    stats[col] = { min: sorted[0], max: sorted[sorted.length-1], mean: mean.toFixed(2), count: vals.length };
+  });
+
+  dfSummary = `Dataset: "${filename}" with ${data.length} rows and ${cols.length} columns.
+Columns: ${cols.join(', ')}
+Numeric columns: ${numCols.join(', ')}
+Categorical columns: ${strCols.join(', ')}
+Numeric stats: ${JSON.stringify(stats, null, 2)}
+Sample rows (first 5): ${JSON.stringify(sample, null, 2)}`;
+
+  // Suggestions
+  const suggs = document.getElementById('suggestions');
+  suggs.innerHTML = '';
+  const ideas = [];
+  if (numCols.length > 0) ideas.push(`What are the key statistics for ${numCols[0]}?`);
+  if (numCols.length > 1) ideas.push(`Show a chart comparing ${numCols[0]} and ${numCols[1]}`);
+  if (strCols.length > 0) ideas.push(`What are the most common values in ${strCols[0]}?`);
+  if (numCols.length > 0) ideas.push(`Find outliers or anomalies in the data`);
+  ideas.push('Give me a full summary of this dataset');
+  ideas.slice(0, 4).forEach(idea => {
+    const btn = document.createElement('button');
+    btn.className = 'suggestion-btn';
+    btn.textContent = idea;
+    btn.onclick = () => { document.getElementById('msgInput').value = idea; sendMessage(); };
+    suggs.appendChild(btn);
+  });
+
+  document.getElementById('welcome').style.display = 'none';
+  document.getElementById('msgInput').disabled = false;
+  document.getElementById('sendBtn').disabled = false;
+
+  addMessage('ai', `Dataset loaded! I can see **${data.length.toLocaleString()} rows** and **${cols.length} columns**.\n\nNumeric columns: ${numCols.join(', ') || 'none'}\nText columns: ${strCols.join(', ') || 'none'}\n\nWhat would you like to know about your data?`, true);
+  document.getElementById('msgInput').focus();
+}
+
+function handleKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+}
+
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+}
+
+function scrollBottom() {
+  const msgs = document.getElementById('messages');
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function addMessage(role, content, render = false) {
+  const msgs = document.getElementById('messages');
+  const div = document.createElement('div');
+  div.className = `message ${role}`;
+  const avatar = role === 'ai' ? '🤖' : '👤';
+  div.innerHTML = `
+    <div class="avatar ${role}">${avatar}</div>
+    <div class="bubble">
+      <div class="bubble-content" id="bubble-${Date.now()}">${render ? renderMarkdown(content) : escapeHtml(content)}</div>
+      <div class="bubble-meta">${new Date().toLocaleTimeString()}</div>
+    </div>`;
+  msgs.appendChild(div);
+  scrollBottom();
+  return div.querySelector('.bubble-content');
+}
+
+function addThinking() {
+  const msgs = document.getElementById('messages');
+  const div = document.createElement('div');
+  div.className = 'message ai';
+  div.id = 'thinking';
+  div.innerHTML = `<div class="avatar ai">🤖</div><div class="bubble"><div class="bubble-content"><div class="thinking"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div></div>`;
+  msgs.appendChild(div);
+  scrollBottom();
+}
+
+function removeThinking() {
+  const t = document.getElementById('thinking');
+  if (t) t.remove();
+}
+
+function escapeHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function renderMarkdown(text) {
+  return text
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.*?)\*/g, '<em>$1</em>')
+    .replace(/`(.*?)`/g, '<code style="background:#0a0c14;padding:2px 5px;border-radius:4px;font-family:monospace;font-size:12px">$1</code>')
+    .replace(/\n/g, '<br>');
+}
+
+async function sendMessage() {
+  const input = document.getElementById('msgInput');
+  const question = input.value.trim();
+  if (!question || !df) return;
+
+  input.value = '';
+  input.style.height = 'auto';
+  document.getElementById('sendBtn').disabled = true;
+
+  addMessage('user', question);
+  messageHistory.push({ role: 'user', content: question });
+
+  addThinking();
+
+  const systemPrompt = `You are DataChat, an expert AI Data Analyst. The user has uploaded a CSV dataset.
+
+DATASET SUMMARY:
+${dfSummary}
+
+Your job is to analyze data and answer questions clearly. When analyzing:
+
+1. Always provide a clear, conversational answer first
+2. If showing statistics, use this JSON format:
+   <STATS>{"headers":["Column","Count","Mean","Min","Max"],"rows":[["Sales",100,45.2,10,200]]}</STATS>
+3. If a chart would help, use this format:
+   <CHART>{"type":"bar","title":"Chart Title","labels":["A","B","C"],"datasets":[{"label":"Value","data":[10,20,30],"color":"#6366f1"}]}</CHART>
+   Chart types: bar, line, pie, doughnut
+4. Use **bold** for emphasis and bullet points with -
+5. Be specific with numbers from the actual dataset
+6. If asked for code, show a Python pandas example
+
+Keep responses clear, insightful, and data-driven.`;
+
+  const messages = [
+    ...messageHistory.slice(-6),
+  ];
+
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': '', 'anthropic-version': '2023-06-01' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 1500,
+        system: systemPrompt,
+        messages: messages
+      })
+    });
+
+    const data = await resp.json();
+    removeThinking();
+
+    const reply = data.content?.[0]?.text || 'Sorry, I could not analyze that. Please try again.';
+    messageHistory.push({ role: 'assistant', content: reply });
+
+    renderAIResponse(reply);
+  } catch (err) {
+    removeThinking();
+    addMessage('ai', 'Connection error. Make sure you are running this through Claude artifacts.', true);
+  }
+
+  document.getElementById('sendBtn').disabled = false;
+}
+
+function renderAIResponse(text) {
+  const msgs = document.getElementById('messages');
+  const div = document.createElement('div');
+  div.className = 'message ai';
+
+  let processed = text;
+  const statsMatches = [];
+  const chartMatches = [];
+
+  processed = processed.replace(/<STATS>([\s\S]*?)<\/STATS>/g, (_, json) => {
+    statsMatches.push(json.trim());
+    return `[[STATS_${statsMatches.length-1}]]`;
+  });
+  processed = processed.replace(/<CHART>([\s\S]*?)<\/CHART>/g, (_, json) => {
+    chartMatches.push(json.trim());
+    return `[[CHART_${chartMatches.length-1}]]`;
+  });
+
+  const parts = processed.split(/(\[\[STATS_\d+\]\]|\[\[CHART_\d+\]\])/);
+  let html = '';
+  parts.forEach(part => {
+    const statMatch = part.match(/\[\[STATS_(\d+)\]\]/);
+    const chartMatch = part.match(/\[\[CHART_(\d+)\]\]/);
+    if (statMatch) {
+      try {
+        const d = JSON.parse(statsMatches[parseInt(statMatch[1])]);
+        html += `<table class="stats-table"><thead><tr>${d.headers.map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>${d.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
+      } catch(e) { html += part; }
+    } else if (chartMatch) {
+      const cid = 'chart_' + Date.now() + '_' + chartMatch[1];
+      html += `<div class="chart-wrap"><h4 id="title_${cid}"></h4><canvas id="${cid}"></canvas></div>`;
+      chartMatches[parseInt(chartMatch[1])].chartId = cid;
+    } else if (part.trim()) {
+      html += `<div style="margin-bottom:8px">${renderMarkdown(part.trim())}</div>`;
+    }
+  });
+
+  div.innerHTML = `<div class="avatar ai">🤖</div><div class="bubble"><div class="bubble-content">${html}</div><div class="bubble-meta">${new Date().toLocaleTimeString()}</div></div>`;
+  msgs.appendChild(div);
+  scrollBottom();
+
+  chartMatches.forEach((cm, i) => {
+    if (!cm.chartId) return;
+    try {
+      const d = JSON.parse(typeof cm === 'string' ? cm : JSON.stringify(cm));
+      const canvas = document.getElementById(cm.chartId);
+      if (!canvas) return;
+      const titleEl = document.getElementById('title_' + cm.chartId);
+      if (titleEl) titleEl.textContent = d.title || '';
+      const colors = d.datasets.map((ds,i) => ds.color || ['#6366f1','#10b981','#f59e0b','#ef4444','#8b5cf6'][i%5]);
+      new Chart(canvas, {
+        type: d.type || 'bar',
+        data: {
+          labels: d.labels,
+          datasets: d.datasets.map((ds, i) => ({
+            label: ds.label,
+            data: ds.data,
+            backgroundColor: d.type === 'line' ? 'transparent' : colors[i] + '99',
+            borderColor: colors[i],
+            borderWidth: 2,
+            pointRadius: 4,
+            tension: 0.3
+          }))
+        },
+        options: {
+          responsive: true,
+          plugins: { legend: { labels: { color: '#94a3b8', font: { size: 11 } } } },
+          scales: d.type !== 'pie' && d.type !== 'doughnut' ? {
+            x: { ticks: { color: '#64748b', font: { size: 11 } }, grid: { color: '#1e2130' } },
+            y: { ticks: { color: '#64748b', font: { size: 11 } }, grid: { color: '#1e2130' } }
+          } : {}
+        }
+      });
+    } catch(e) { console.log('Chart error', e); }
+  });
+}
+</script>
+</body>
+</html>
