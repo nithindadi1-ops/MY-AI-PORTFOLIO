@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nithin Dadi — AI & Data Analyst</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,600;1,700&family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0d0d0d;
+  --surface:#141414;
+  --surface2:#1c1c1c;
+  --white:#f0ede8;
+  --muted:#5a5a5a;
+  --muted2:#3d3d3d;
+  --orange:#c84b2f;
+  --border:rgba(240,237,232,.06);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--white);font-family:'Space Grotesk',sans-serif;cursor:none;overflow-x:hidden}
+
+/* CURSOR */
+.cur-dot{width:6px;height:6px;background:var(--white);border-radius:50%;position:fixed;pointer-events:none;z-index:9999;transform:translate(-50%,-50%);mix-blend-mode:difference}
+.cur-ring{width:40px;height:40px;border:1px solid rgba(240,237,232,.5);border-radius:50%;position:fixed;pointer-events:none;z-index:9998;transform:translate(-50%,-50%);transition:transform .25s cubic-bezier(.25,.46,.45,.94),width .2s,height .2s;mix-blend-mode:difference}
+.cur-ring.big{width:64px;height:64px;border-color:rgba(200,75,47,.8)}
+
+/* GRID */
+body::before{content:'';position:fixed;top:0;left:0;right:0;bottom:0;background-image:linear-gradient(rgba(240,237,232,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(240,237,232,.025) 1px,transparent 1px);background-size:60px 60px;pointer-events:none;z-index:0}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:22px 56px;display:flex;align-items:center;justify-content:space-between}
+.nav-logo{font-family:'Space Mono',monospace;font-size:13px;color:var(--muted);letter-spacing:2px}
+.nav-logo strong{color:var(--white)}
+.nav-links{display:flex;gap:32px;list-style:none}
+.nav-links a{font-size:12px;color:var(--muted);text-decoration:none;font-weight:400;letter-spacing:.5px;transition:color .2s}
+.nav-links a:hover{color:var(--white)}
+.nav-badge{background:var(--orange);color:var(--white);padding:7px 18px;border-radius:2px;font-size:11px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;text-decoration:none;font-family:'Space Mono',monospace;transition:opacity .2s}
+.nav-badge:hover{opacity:.85}
+
+/* HERO */
+.hero{min-height:100vh;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;z-index:1;padding:100px 56px 80px}
+
+/* FLOATING DATA CARDS */
+.float-obj{position:absolute;pointer-events:none}
+.float-obj{animation:flt 7s ease-in-out infinite}
+@keyframes flt{0%,100%{transform:translateY(0) rotate(var(--r,0deg))}50%{transform:translateY(-10px) rotate(var(--r,0deg))}}
+.f1{--r:-5deg;top:14%;left:3%;animation-duration:7s}
+.f2{--r:4deg;top:10%;right:14%;animation-delay:1.2s;animation-duration:8s}
+.f3{--r:-2deg;top:52%;left:0%;animation-delay:.6s;animation-duration:7.5s}
+.f4{--r:3deg;bottom:26%;left:7%;animation-delay:1.8s;animation-duration:8.5s}
+.f5{--r:-3deg;bottom:24%;right:18%;animation-delay:.9s;animation-duration:7s}
+
+.dc{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px;font-family:'Space Mono',monospace}
+.dc-head{font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.dc-dot{width:5px;height:5px;border-radius:50%;background:var(--orange)}
+.dc-dot.g{background:#10b981}
+.br{display:flex;align-items:center;gap:6px;margin-bottom:5px}
+.bl{font-size:8px;color:var(--muted);width:28px}
+.bt{flex:1;height:3px;background:var(--surface2);border-radius:2px;overflow:hidden}
+.bf{height:100%;border-radius:2px}
+.bv{font-size:8px;color:var(--muted)}
+.tl{font-size:9px;color:var(--muted);margin-bottom:3px}
+.tl .p{color:#10b981}.tl .c{color:var(--white)}.tl .o{color:#60a5fa}
+.pill-g{background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.2);border-radius:100px;padding:6px 14px;font-size:11px;color:#10b981;font-family:'Space Mono',monospace;letter-spacing:.5px;display:inline-block;white-space:nowrap}
+.cs{font-size:9px;font-family:'Space Mono',monospace;color:var(--muted);line-height:1.6}
+.kw{color:#c084fc}.fn2{color:#60a5fa}.cm2{color:#3d3d3d}
+
+/* AVATAR */
+.obj-avatar{position:absolute;right:2%;bottom:0;width:320px;z-index:10;animation:breathe 5s ease-in-out infinite}
+@keyframes breathe{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+.wave-arm{transform-origin:220px 240px;animation:wave 3s ease-in-out infinite}
+@keyframes wave{0%,100%{transform:rotate(0deg)}15%{transform:rotate(-30deg)}30%{transform:rotate(8deg)}50%{transform:rotate(-24deg)}70%{transform:rotate(5deg)}85%{transform:rotate(-14deg)}}
+
+/* HERO TEXT */
+.hero-label{font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);letter-spacing:4px;text-transform:uppercase;margin-bottom:14px;text-align:center;position:relative;z-index:5}
+.hero-display{font-family:'Cormorant Garamond',serif;font-weight:700;font-size:clamp(72px,11vw,172px);line-height:.88;text-align:center;position:relative;z-index:5;letter-spacing:-4px}
+.hero-display .l1{display:block;color:var(--white);font-style:italic}
+.hero-display .l2{display:block;color:var(--orange);position:relative}
+.hero-display .nbadge{display:inline-flex;align-items:center;background:var(--white);color:var(--bg);font-size:clamp(10px,1.2vw,18px);padding:3px 12px;border-radius:2px;font-family:'Space Mono',monospace;font-weight:400;letter-spacing:1px;margin:0 10px;vertical-align:middle;position:relative;top:-10px;font-style:normal}
+.hero-display .yr{font-family:'Space Mono',monospace;font-size:clamp(10px,1.2vw,18px);color:var(--muted);font-style:normal;letter-spacing:0;margin-left:12px}
+.hero-sub{display:flex;align-items:center;gap:28px;justify-content:center;margin-top:24px;position:relative;z-index:5}
+.hero-sub p{font-size:13px;color:var(--muted);max-width:320px;text-align:center;line-height:1.6}
+.hero-sub .dv{width:1px;height:36px;background:var(--border)}
+.hero-ctas{display:flex;gap:12px;margin-top:32px;position:relative;z-index:5;justify-content:center}
+.btn-s{background:var(--white);color:var(--bg);padding:11px 26px;border-radius:2px;font-size:12px;font-weight:600;text-decoration:none;font-family:'Space Mono',monospace;letter-spacing:.5px;transition:opacity .2s}
+.btn-s:hover{opacity:.85}
+.btn-o{border:1px solid var(--muted2);color:var(--muted);padding:11px 26px;border-radius:2px;font-size:12px;text-decoration:none;font-family:'Space Mono',monospace;letter-spacing:.5px;transition:all .2s}
+.btn-o:hover{border-color:var(--white);color:var(--white)}
+.scroll-hint{position:absolute;bottom:36px;left:56px;display:flex;align-items:center;gap:12px;font-size:10px;color:var(--muted);font-family:'Space Mono',monospace;letter-spacing:2px;z-index:5}
+.sl{width:44px;height:1px;background:var(--muted);overflow:hidden;position:relative}
+.sl::after{content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;background:var(--orange);animation:sa 2.4s ease-in-out infinite}
+@keyframes sa{0%{left:-100%}50%{left:0}100%{left:100%}}
+
+/* STATS BAND */
+.stats-band{border-top:1px solid var(--border);display:grid;grid-template-columns:repeat(4,1fr);position:relative;z-index:1}
+.stat-cell{padding:28px 36px;border-right:1px solid var(--border)}
+.stat-cell:last-child{border-right:none}
+.stat-big{font-family:'Cormorant Garamond',serif;font-weight:700;font-size:50px;letter-spacing:-3px;line-height:1;color:var(--orange)}
+.stat-txt{font-size:10px;color:var(--muted);margin-top:5px;font-family:'Space Mono',monospace;letter-spacing:.5px}
+
+/* SECTIONS */
+section{position:relative;z-index:1;padding:80px 56px;border-top:1px solid var(--border)}
+.sec-lbl{font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:3px;text-transform:uppercase;margin-bottom:48px;display:flex;align-items:center;gap:14px}
+.sec-lbl::after{content:'';flex:1;height:1px;background:var(--border);max-width:160px}
+
+/* ABOUT */
+.about-grid{display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:start}
+.about-ttl{font-family:'Cormorant Garamond',serif;font-weight:700;font-size:clamp(40px,5vw,68px);letter-spacing:-2px;line-height:.95}
+.about-ttl .oi{color:var(--orange);font-style:italic}
+.about-body p{font-size:15px;color:var(--muted);line-height:1.8;margin-bottom:16px}
+.about-body strong{color:var(--white);font-weight:500}
+.tags{display:flex;flex-wrap:wrap;gap:8px;margin-top:22px}
+.tag{border:1px solid var(--border);border-radius:2px;padding:5px 12px;font-size:10px;font-family:'Space Mono',monospace;color:var(--muted);letter-spacing:.3px}
+
+/* SKILLS */
+.sk-item{display:grid;grid-template-columns:28px 1fr 160px 38px;align-items:center;gap:20px;padding:15px 0;border-bottom:1px solid var(--border);transition:padding-left .2s}
+.sk-item:hover{padding-left:8px}
+.sk-n{font-family:'Space Mono',monospace;font-size:10px;color:var(--muted2)}
+.sk-name{font-family:'Cormorant Garamond',serif;font-weight:700;font-size:22px;letter-spacing:-.5px}
+.sk-bar{height:2px;background:var(--surface2);border-radius:1px;overflow:hidden}
+.sk-fill{height:100%;background:var(--orange);border-radius:1px;width:0;transition:width 1.4s cubic-bezier(.4,0,.2,1)}
+.sk-pct{font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);text-align:right}
+
+/* WORK */
+.wk-item{display:grid;grid-template-columns:150px 1fr;gap:44px;padding:32px 0;border-bottom:1px solid var(--border)}
+.wk-date{font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);padding-top:5px;line-height:1.8}
+.wk-role{font-family:'Cormorant Garamond',serif;font-weight:700;font-size:24px;letter-spacing:-1px;margin-bottom:3px}
+.wk-org{font-family:'Space Mono',monospace;font-size:10px;color:var(--orange);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:13px}
+.wk-desc{font-size:14px;color:var(--muted);line-height:1.8;max-width:540px}
+.wk-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:13px}
+.wt{font-family:'Space Mono',monospace;font-size:9px;color:var(--muted2);border:1px solid var(--muted2);border-radius:2px;padding:2px 7px;letter-spacing:.3px}
+
+/* PROJECTS */
+.proj-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border)}
+.proj-card{background:var(--bg);padding:32px;border:none;text-decoration:none;color:inherit;display:block;position:relative;overflow:hidden;transition:background .2s}
+.proj-card:hover{background:var(--surface)}
+.proj-card::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--orange);transform:scaleX(0);transition:transform .3s;transform-origin:left}
+.proj-card:hover::after{transform:scaleX(1)}
+.proj-num{font-family:'Space Mono',monospace;font-size:9px;color:var(--muted2);margin-bottom:16px;letter-spacing:1px}
+.proj-name{font-family:'Cormorant Garamond',serif;font-weight:700;font-size:26px;letter-spacing:-1px;margin-bottom:8px;line-height:1.1;transition:color .2s}
+.proj-card:hover .proj-name{color:var(--orange)}
+.proj-desc{font-size:13px;color:var(--muted);line-height:1.65;margin-bottom:20px}
+.proj-foot{display:flex;align-items:center;justify-content:space-between}
+.proj-stack{display:flex;gap:5px;flex-wrap:wrap}
+.ptg{font-family:'Space Mono',monospace;font-size:9px;color:var(--muted2);border:1px solid var(--border);border-radius:2px;padding:2px 6px}
+.proj-arrow{font-size:16px;color:var(--muted2);transition:color .2s,transform .2s}
+.proj-card:hover .proj-arrow{color:var(--orange);transform:translate(4px,-4px)}
+.proj-live{display:flex;align-items:center;gap:5px;font-family:'Space Mono',monospace;font-size:9px;color:#10b981;letter-spacing:1px}
+.proj-live::before{content:'';width:5px;height:5px;background:#10b981;border-radius:50%;display:inline-block}
+.proj-card.wide{grid-column:span 2}
+
+/* NOTEBOOKS & DIAGRAMS SECTION */
+.assets-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;background:var(--border);margin-top:0}
+.asset-item{background:var(--bg);padding:24px;border:none;text-decoration:none;color:inherit;display:flex;align-items:flex-start;gap:14px;transition:background .2s}
+.asset-item:hover{background:var(--surface)}
+.asset-icon{font-size:20px;flex-shrink:0;margin-top:2px}
+.asset-name{font-family:'Cormorant Garamond',serif;font-weight:700;font-size:17px;letter-spacing:-.3px;margin-bottom:4px;transition:color .2s}
+.asset-item:hover .asset-name{color:var(--orange)}
+.asset-desc{font-size:11px;color:var(--muted);line-height:1.5;font-family:'Space Mono',monospace}
+
+/* EDU */
+.edu-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border)}
+.edu-cell{background:var(--bg);padding:32px}
+.edu-deg{font-family:'Cormorant Garamond',serif;font-weight:700;font-size:22px;letter-spacing:-.5px;margin-bottom:6px}
+.edu-sch{font-family:'Space Mono',monospace;font-size:10px;color:var(--orange);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px}
+.edu-yr{font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);margin-bottom:12px}
+.edu-sub{font-size:13px;color:var(--muted);line-height:1.6}
+.cert-row{margin-top:14px;display:flex;flex-direction:column;gap:10px}
+.cert-line{display:flex;align-items:center;gap:10px;font-size:13px}
+.cert-line::before{content:'';width:4px;height:4px;background:var(--orange);border-radius:50%;flex-shrink:0}
+.cert-name{color:var(--white);font-weight:500}
+.cert-yr{font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);margin-left:auto}
+
+/* CONTACT */
+.contact-wrap{text-align:center;padding:120px 56px;position:relative;overflow:hidden;border-top:1px solid var(--border)}
+.contact-bg-txt{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:'Cormorant Garamond',serif;font-weight:700;font-size:clamp(100px,18vw,260px);color:rgba(240,237,232,.018);white-space:nowrap;letter-spacing:-10px;pointer-events:none;font-style:italic}
+.contact-lbl{font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:3px;text-transform:uppercase;margin-bottom:20px;display:block;position:relative;z-index:1}
+.contact-ttl{font-family:'Cormorant Garamond',serif;font-weight:700;font-size:clamp(44px,8vw,100px);letter-spacing:-4px;line-height:.9;margin-bottom:32px;position:relative;z-index:1}
+.contact-ttl .oi{font-style:italic;color:var(--orange)}
+.contact-email{font-family:'Space Mono',monospace;font-size:clamp(13px,1.6vw,18px);color:var(--muted);text-decoration:none;border-bottom:1px solid var(--muted2);padding-bottom:4px;transition:color .2s,border-color .2s;position:relative;z-index:1;display:inline-block}
+.contact-email:hover{color:var(--white);border-color:var(--white)}
+.clinks{display:flex;justify-content:center;gap:12px;margin-top:28px;flex-wrap:wrap;position:relative;z-index:1}
+.cl{border:1px solid var(--border);border-radius:2px;padding:8px 16px;font-size:10px;font-family:'Space Mono',monospace;color:var(--muted);text-decoration:none;letter-spacing:.5px;transition:all .2s}
+.cl:hover{border-color:var(--muted);color:var(--white)}
+
+/* FOOTER */
+footer{padding:18px 56px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:.5px}
+
+/* REVEAL */
+.rv{opacity:0;transform:translateY(18px);transition:opacity .7s,transform .7s}
+.rv.in{opacity:1;transform:none}
+.d1{transition-delay:.08s}.d2{transition-delay:.16s}.d3{transition-delay:.24s}
+
+::-webkit-scrollbar{width:2px}
+::-webkit-scrollbar-thumb{background:var(--surface2)}
+
+@media(max-width:900px){
+  nav{padding:16px 24px}.nav-links,.nav-badge{display:none}
+  .hero{padding:90px 20px 80px}
+  .obj-avatar{width:180px;right:0}.f1,.f2,.f3,.f4,.f5{display:none}
+  section{padding:56px 20px}
+  .about-grid{grid-template-columns:1fr}
+  .sk-item{grid-template-columns:28px 1fr 38px}.sk-bar{display:none}
+  .wk-item{grid-template-columns:1fr}
+  .stats-band{grid-template-columns:1fr 1fr}.stat-cell{border-right:none;border-bottom:1px solid var(--border)}
+  .proj-grid,.assets-grid,.edu-grid{grid-template-columns:1fr}
+  .proj-card.wide{grid-column:span 1}
+  footer{padding:16px 20px;flex-direction:column;gap:6px;text-align:center}
+  .contact-wrap{padding:80px 20px}
+  .hero-sub{flex-direction:column;gap:16px}.hero-sub .dv{display:none}
+  .scroll-hint{left:20px}
+}
+</style>
+</head>
+<body>
+<div class="cur-dot" id="cd"></div>
+<div class="cur-ring" id="cr"></div>
+
+<nav>
+  <div class="nav-logo"><strong>Nithin Dadi</strong> / ND</div>
+  <ul class="nav-links">
+    <li><a href="#about">About</a></li>
+    <li><a href="#skills">Skills</a></li>
+    <li><a href="#work">Work</a></li>
+    <li><a href="#projects">Projects</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+  <a href="mailto:nithindadi1@gmail.com" class="nav-badge">Hire Me</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+
+  <!-- FLOATING DATA CARDS -->
+  <div class="float-obj f1">
+    <div class="dc" style="width:196px">
+      <div class="dc-head"><div class="dc-dot"></div>Skill Proficiency</div>
+      <div class="br"><span class="bl">SQL</span><div class="bt"><div class="bf" style="width:95%;background:var(--orange)"></div></div><span class="bv">95%</span></div>
+      <div class="br"><span class="bl">PBI</span><div class="bt"><div class="bf" style="width:93%;background:#60a5fa"></div></div><span class="bv">93%</span></div>
+      <div class="br"><span class="bl">AI</span><div class="bt"><div class="bf" style="width:87%;background:#10b981"></div></div><span class="bv">87%</span></div>
+      <div class="br"><span class="bl">ML</span><div class="bt"><div class="bf" style="width:84%;background:#a78bfa"></div></div><span class="bv">84%</span></div>
+    </div>
+  </div>
+
+  <div class="float-obj f2">
+    <div class="dc" style="width:196px">
+      <div class="dc-head"><div class="dc-dot g"></div>Terminal — PredictIQ</div>
+      <div class="tl"><span class="p">$</span> <span class="c">python predictiq.py --train</span></div>
+      <div class="tl"><span class="o">Training XGBoost...</span></div>
+      <div class="tl"><span class="o">AUC-ROC: 0.912</span></div>
+      <div class="tl"><span class="o">F1 Score: 0.830</span></div>
+      <div class="tl"><span class="p">$</span> <span class="c">model saved.</span></div>
+    </div>
+  </div>
+
+  <div class="float-obj f3">
+    <div class="dc" style="width:130px;text-align:center;padding:16px">
+      <div style="font-family:'Cormorant Garamond',serif;font-weight:700;font-size:42px;color:var(--orange);line-height:1">40%</div>
+      <div style="font-size:8px;color:var(--muted);font-family:'Space Mono',monospace;margin-top:5px;letter-spacing:1px">CYCLE REDUCED</div>
+    </div>
+  </div>
+
+  <div class="float-obj f4">
+    <div class="pill-g">5 AI Apps Deployed</div>
+  </div>
+
+  <div class="float-obj f5">
+    <div class="dc" style="width:188px">
+      <div class="dc-head"><div class="dc-dot"></div>rag_pipeline.py</div>
+      <div class="cs">
+        <span class="kw">chain</span> = RetrievalQA.<br>
+        &nbsp;&nbsp;<span class="fn2">from_chain_type</span>(<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;llm=<span class="fn2">Mistral</span>(),<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;retriever=faiss<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;.<span class="fn2">as_retriever</span>()<br>
+        )
+      </div>
+    </div>
+  </div>
+
+  <!-- AVATAR - South Asian male, royal blue #8 jersey, beard, wavy hair -->
+  <div class="obj-avatar">
+    <svg viewBox="0 0 320 560" xmlns="http://www.w3.org/2000/svg">
+      <ellipse cx="160" cy="548" rx="66" ry="9" fill="rgba(0,0,0,.5)"/>
+      <!-- WHITE PANTS -->
+      <path d="M103 372 Q99 498 97 544 Q109 547 123 545 Q129 490 136 418Z" fill="#e8e4dc"/>
+      <path d="M217 372 Q221 498 223 544 Q211 547 197 545 Q191 490 184 418Z" fill="#dedad2"/>
+      <rect x="103" y="370" width="114" height="20" rx="5" fill="#e0dcd4"/>
+      <line x1="110" y1="390" x2="102" y2="543" stroke="#d0ccC4" stroke-width="1.5"/>
+      <line x1="210" y1="390" x2="218" y2="543" stroke="#cac6be" stroke-width="1.5"/>
+      <!-- SHOES -->
+      <path d="M79 539 Q93 533 123 539 Q129 549 101 553 Q76 551 79 539Z" fill="#1a1a1a"/>
+      <path d="M197 539 Q227 533 241 539 Q245 549 219 553 Q194 551 197 539Z" fill="#1a1a1a"/>
+      <path d="M81 535 Q101 529 121 535" fill="none" stroke="#2a2a2a" stroke-width="2"/>
+      <path d="M199 535 Q219 529 239 535" fill="none" stroke="#2a2a2a" stroke-width="2"/>
+      <!-- JERSEY - royal blue knit -->
+      <path d="M89 246 Q81 250 77 262 L71 372 Q101 383 160 383 Q219 383 249 372 L243 262 Q239 250 231 246Z" fill="#1D4ED8"/>
+      <path d="M89 246 Q79 252 75 270 L71 372 Q83 377 99 379 L101 282 Q97 262 91 250Z" fill="#1e40af"/>
+      <path d="M231 246 Q241 252 245 270 L249 372 Q237 377 221 379 L219 282 Q223 262 229 250Z" fill="#1e40af"/>
+      <path d="M129 246 Q160 271 191 246" fill="none" stroke="#e8dfc8" stroke-width="3" stroke-linecap="round"/>
+      <line x1="77" y1="286" x2="243" y2="286" stroke="rgba(255,255,255,.07)" stroke-width="2"/>
+      <line x1="75" y1="311" x2="245" y2="311" stroke="rgba(255,255,255,.07)" stroke-width="2"/>
+      <line x1="74" y1="336" x2="246" y2="336" stroke="rgba(255,255,255,.07)" stroke-width="2"/>
+      <text x="160" y="341" text-anchor="middle" font-family="Impact,Arial Black,sans-serif" font-size="62" font-weight="900" fill="white" opacity=".93">8</text>
+      <!-- LEFT ARM relaxed -->
+      <path d="M89 249 Q69 261 61 291 Q57 321 65 351 Q69 363 81 361 Q89 359 93 345 L101 281Z" fill="#1D4ED8"/>
+      <path d="M65 351 Q61 369 63 381 Q69 391 79 389 Q89 387 89 375 Q89 365 81 361Z" fill="#C08040"/>
+      <path d="M67 379 Q61 391 59 399 Q65 403 69 397 Q71 389 69 381Z" fill="#A0622A"/>
+      <path d="M75 383 Q71 397 71 405 Q77 407 81 401 Q81 391 79 383Z" fill="#C08040"/>
+      <path d="M83 383 Q81 397 83 405 Q89 405 91 399 Q89 389 87 383Z" fill="#C08040"/>
+      <path d="M90 381 Q90 393 93 399 Q97 399 99 393 Q97 385 93 381Z" fill="#C08040"/>
+      <rect x="60" y="367" width="23" height="15" rx="4" fill="#1a1a1a"/>
+      <rect x="62" y="369" width="19" height="11" rx="2" fill="#2d2d2d"/>
+      <text x="71" y="378" text-anchor="middle" font-size="5" fill="#60a5fa" font-family="monospace">9:41</text>
+      <!-- RIGHT ARM waving -->
+      <g class="wave-arm">
+        <path d="M231 249 Q251 261 261 289 Q267 319 257 351 Q253 363 241 361 Q231 359 229 345 L221 281Z" fill="#1D4ED8"/>
+        <path d="M257 351 Q263 369 261 381 Q255 393 245 389 Q235 387 235 375 Q235 365 243 361Z" fill="#C08040"/>
+        <path d="M253 369 Q259 357 267 349 Q271 345 273 351 Q271 359 263 365Z" fill="#A0622A"/>
+        <path d="M259 375 Q269 365 279 361 Q283 359 283 366 Q279 373 269 377Z" fill="#C08040"/>
+        <path d="M261 383 Q273 377 283 375 Q287 375 285 382 Q279 387 267 387Z" fill="#C08040"/>
+        <path d="M259 391 Q271 389 279 389 Q281 395 277 399 Q267 399 259 395Z" fill="#C08040"/>
+        <path d="M253 397 Q263 399 269 401 Q267 407 261 407 Q253 405 251 399Z" fill="#C08040"/>
+      </g>
+      <!-- NECK -->
+      <rect x="141" y="226" width="38" height="27" rx="9" fill="#c08040"/>
+      <!-- HEAD -->
+      <path d="M85 172 Q83 122 160 110 Q237 122 235 172 Q237 208 227 224 Q209 244 189 250 Q175 254 160 254 Q145 254 131 250 Q111 244 93 224 Q83 208 85 172Z" fill="#C98040"/>
+      <ellipse cx="137" cy="140" rx="26" ry="18" fill="rgba(255,255,255,.06)" transform="rotate(-20,137,140)"/>
+      <!-- HAIR - voluminous wavy jet black -->
+      <path d="M85 170 Q81 110 160 98 Q239 110 235 170 Q227 120 199 106 Q179 98 160 98 Q141 98 121 106 Q93 120 85 170Z" fill="#0d0702"/>
+      <path d="M99 132 Q97 106 111 94 Q131 84 160 84 Q189 84 209 94 Q223 106 221 132 Q209 104 160 100 Q111 104 99 132Z" fill="#0d0702"/>
+      <path d="M85 170 Q79 142 81 118 Q83 98 93 88 Q83 112 81 152 Q81 164 85 170Z" fill="#0d0702"/>
+      <path d="M235 170 Q241 142 239 118 Q237 98 227 88 Q237 112 239 152 Q239 164 235 170Z" fill="#0d0702"/>
+      <!-- Fringe texture waves -->
+      <path d="M105 126 Q113 112 125 120 Q133 116 141 124 Q149 114 157 122 Q163 114 171 122 Q179 114 187 120 Q197 116 205 126" fill="none" stroke="#0d0702" stroke-width="7" stroke-linecap="round" opacity=".95"/>
+      <path d="M107 138 Q117 124 127 132 Q137 126 145 134 Q152 124 160 130" fill="none" stroke="#0d0702" stroke-width="6" stroke-linecap="round" opacity=".85"/>
+      <path d="M85 157 Q81 144 83 130 Q87 144 87 160Z" fill="#0d0702"/>
+      <path d="M235 157 Q239 144 237 130 Q233 144 233 160Z" fill="#0d0702"/>
+      <!-- EARS -->
+      <ellipse cx="83" cy="178" rx="11" ry="15" fill="#c08040"/>
+      <ellipse cx="83" cy="178" rx="6.5" ry="10" fill="#a86c30"/>
+      <ellipse cx="237" cy="178" rx="11" ry="15" fill="#c08040"/>
+      <ellipse cx="237" cy="178" rx="6.5" ry="10" fill="#a86c30"/>
+      <!-- EYEBROWS thick with arch -->
+      <path d="M109 150 Q121 142 145 145" fill="none" stroke="#0d0702" stroke-width="7" stroke-linecap="round"/>
+      <path d="M175 145 Q199 142 211 150" fill="none" stroke="#0d0702" stroke-width="7" stroke-linecap="round"/>
+      <!-- EYES almond dark brown -->
+      <path d="M111 166 Q127 158 145 166 Q127 176 111 166Z" fill="#f5e6d0"/>
+      <circle cx="128" cy="166" r="9" fill="#3d1c02"/>
+      <circle cx="128" cy="166" r="5.5" fill="#0d0500"/>
+      <circle cx="131" cy="163" r="2" fill="white"/>
+      <path d="M111 165 Q127 156 145 165" fill="none" stroke="#0d0502" stroke-width="2.5" stroke-linecap="round"/>
+      <path d="M175 166 Q193 158 211 166 Q193 176 175 166Z" fill="#f5e6d0"/>
+      <circle cx="193" cy="166" r="9" fill="#3d1c02"/>
+      <circle cx="193" cy="166" r="5.5" fill="#0d0500"/>
+      <circle cx="196" cy="163" r="2" fill="white"/>
+      <path d="M175 165 Q193 156 211 165" fill="none" stroke="#0d0502" stroke-width="2.5" stroke-linecap="round"/>
+      <!-- NOSE -->
+      <path d="M154 174 Q150 190 146 198 Q152 204 160 202 Q168 204 174 198 Q170 190 166 174" fill="rgba(0,0,0,.09)"/>
+      <ellipse cx="148" cy="200" rx="8" ry="5.5" fill="#8a5420" opacity=".75"/>
+      <ellipse cx="172" cy="200" rx="8" ry="5.5" fill="#8a5420" opacity=".75"/>
+      <!-- SMILE bright with teeth -->
+      <path d="M127 218 Q160 236 193 218 Q193 230 160 232 Q127 230 127 218Z" fill="white"/>
+      <line x1="145" y1="218" x2="145" y2="230" stroke="#e8e8e8" stroke-width="1"/>
+      <line x1="160" y1="219" x2="160" y2="231" stroke="#e8e8e8" stroke-width="1"/>
+      <line x1="175" y1="218" x2="175" y2="230" stroke="#e8e8e8" stroke-width="1"/>
+      <path d="M127 216 Q160 234 193 216" fill="none" stroke="#8a5420" stroke-width="2.5" stroke-linecap="round"/>
+      <path d="M134 232 Q160 242 186 232" fill="none" stroke="#a07040" stroke-width="2" stroke-linecap="round" opacity=".5"/>
+      <!-- CHEEKS -->
+      <circle cx="97" cy="192" r="15" fill="rgba(200,100,60,.13)"/>
+      <circle cx="223" cy="192" r="15" fill="rgba(200,100,60,.13)"/>
+      <!-- BEARD full well-groomed -->
+      <path d="M109 208 Q107 230 111 244 Q127 258 160 260 Q193 258 209 244 Q213 230 211 208 Q193 222 160 224 Q127 222 109 208Z" fill="#0d0702"/>
+      <path d="M113 216 Q127 226 143 224 Q152 222 160 224 Q168 222 177 224 Q193 226 207 216" fill="none" stroke="#1a0902" stroke-width="3.5" stroke-linecap="round"/>
+      <path d="M111 226 Q129 236 149 234 Q155 232 160 234 Q165 232 171 234 Q191 236 209 226" fill="none" stroke="#1a0902" stroke-width="3" stroke-linecap="round"/>
+      <!-- Mustache -->
+      <path d="M131 210 Q143 218 155 212 Q159 209 160 211 Q161 209 165 212 Q177 218 189 210" fill="#0d0702"/>
+      <!-- Chin point -->
+      <path d="M149 252 Q160 264 171 252 Q165 260 160 262 Q155 260 149 252Z" fill="#0d0702"/>
+    </svg>
+  </div>
+
+  <div class="hero-label">AI & Data Analyst / USA</div>
+  <h1 class="hero-display">
+    <span class="l1">Nithin</span>
+    <span class="l2"><span class="nbadge">Nithin Dadi</span>Dadi<span class="yr">2026</span></span>
+  </h1>
+  <div class="hero-sub">
+    <p>M.S. Data Analytics. 4 years shipping production AI and data systems at government scale.</p>
+    <div class="dv"></div>
+    <p>Power BI, LangChain, XGBoost, Azure, and five deployed AI applications.</p>
+  </div>
+  <div class="hero-ctas">
+    <a href="#projects" class="btn-s">View Projects</a>
+    <a href="mailto:nithindadi1@gmail.com" class="btn-o">Get In Touch</a>
+  </div>
+  <div class="scroll-hint"><div class="sl"></div>SCROLL</div>
+</section>
+
+<!-- STATS -->
+<div class="stats-band">
+  <div class="stat-cell rv"><div class="stat-big">4+</div><div class="stat-txt">Years experience</div></div>
+  <div class="stat-cell rv d1"><div class="stat-big">40%</div><div class="stat-txt">Reporting cycle reduced at DCFS</div></div>
+  <div class="stat-cell rv d2"><div class="stat-big">10K+</div><div class="stat-txt">Records analyzed daily</div></div>
+  <div class="stat-cell rv d3"><div class="stat-big">5</div><div class="stat-txt">AI apps live in portfolio</div></div>
+</div>
+
+<!-- ABOUT -->
+<section id="about">
+  <div class="sec-lbl">About</div>
+  <div class="about-grid">
+    <div class="rv"><h2 class="about-ttl">Data<br>that<br><span class="oi">moves.</span></h2></div>
+    <div class="about-body rv d1">
+      <p>I'm a <strong>Data Analyst and AI Engineer</strong> who spent 15 months at Illinois DCFS building production analytics infrastructure used daily by senior government leadership.</p>
+      <p>My work lives at the intersection of <strong>data engineering, machine learning, and AI-powered tooling</strong>. I build things that run in production — not just notebooks. Five deployed AI applications, real SQL pipelines, and dashboards that non-technical people actually open every morning.</p>
+      <p><strong>Available immediately</strong> for full-time Data Analyst, Business Intelligence, and AI Engineer roles.</p>
+      <div class="tags">
+        <span class="tag">M.S. Data Analytics</span>
+        <span class="tag">Generative AI — Databricks</span>
+        <span class="tag">GUSAC President</span>
+        <span class="tag">USA</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SKILLS -->
+<section id="skills">
+  <div class="sec-lbl">Capabilities</div>
+  <div>
+    <div class="sk-item rv"><span class="sk-n">01</span><span class="sk-name">SQL — T-SQL, Azure SQL, CTEs, Window Functions</span><div class="sk-bar"><div class="sk-fill" data-w="95"></div></div><span class="sk-pct">95%</span></div>
+    <div class="sk-item rv d1"><span class="sk-n">02</span><span class="sk-name">Power BI — DAX, Power Query, Star Schema, RLS</span><div class="sk-bar"><div class="sk-fill" data-w="93"></div></div><span class="sk-pct">93%</span></div>
+    <div class="sk-item rv d2"><span class="sk-n">03</span><span class="sk-name">Python — Pandas, NumPy, SQLAlchemy, Matplotlib</span><div class="sk-bar"><div class="sk-fill" data-w="91"></div></div><span class="sk-pct">91%</span></div>
+    <div class="sk-item rv"><span class="sk-n">04</span><span class="sk-name">LangChain, RAG Pipelines, FAISS, LLM Fine-tuning</span><div class="sk-bar"><div class="sk-fill" data-w="87"></div></div><span class="sk-pct">87%</span></div>
+    <div class="sk-item rv d1"><span class="sk-n">05</span><span class="sk-name">Scikit-learn, XGBoost, SHAP Explainability</span><div class="sk-bar"><div class="sk-fill" data-w="84"></div></div><span class="sk-pct">84%</span></div>
+    <div class="sk-item rv d2"><span class="sk-n">06</span><span class="sk-name">Azure SQL, Data Factory, Databricks, AWS</span><div class="sk-bar"><div class="sk-fill" data-w="82"></div></div><span class="sk-pct">82%</span></div>
+    <div class="sk-item rv"><span class="sk-n">07</span><span class="sk-name">TensorFlow, Keras — CNN, LSTM, Deep Learning</span><div class="sk-bar"><div class="sk-fill" data-w="78"></div></div><span class="sk-pct">78%</span></div>
+    <div class="sk-item rv d1"><span class="sk-n">08</span><span class="sk-name">FastAPI, ETL Pipelines, Docker, CI/CD</span><div class="sk-bar"><div class="sk-fill" data-w="80"></div></div><span class="sk-pct">80%</span></div>
+  </div>
+</section>
+
+<!-- WORK -->
+<section id="work">
+  <div class="sec-lbl">Experience</div>
+  <div class="wk-item rv">
+    <div class="wk-date">Feb 2025<br>May 2026</div>
+    <div>
+      <div class="wk-role">Data Analyst</div>
+      <div class="wk-org">Illinois DCFS</div>
+      <div class="wk-desc">Built 3 production Power BI dashboards with advanced DAX, RLS, and star schema models monitoring 10,000+ child welfare records. Automated Azure SQL ETL pipelines replacing 8 manual workflows and cutting reporting cycle time by 40%. Initiated and delivered the ISBE Head Start analytics platform from prototype to production in 3 months, distributed to Illinois State Board of Education partners.</div>
+      <div class="wk-tags"><span class="wt">Power BI</span><span class="wt">T-SQL</span><span class="wt">Azure SQL</span><span class="wt">Python</span><span class="wt">DAX</span><span class="wt">ETL</span><span class="wt">JIRA</span><span class="wt">Agile</span></div>
+    </div>
+  </div>
+  <div class="wk-item rv d1">
+    <div class="wk-date">Mar 2022<br>Aug 2024</div>
+    <div>
+      <div class="wk-role">Data Analyst</div>
+      <div class="wk-org">InternForage</div>
+      <div class="wk-desc">Analyzed 50,000+ student performance and placement records. Built Power BI dashboards and automated MySQL ETL pipelines for operational reporting. Developed full-stack data features in Agile sprints.</div>
+      <div class="wk-tags"><span class="wt">MySQL</span><span class="wt">Python</span><span class="wt">Power BI</span><span class="wt">Pandas</span></div>
+    </div>
+  </div>
+  <div class="wk-item rv d2">
+    <div class="wk-date">Apr 2023<br>Jun 2023</div>
+    <div>
+      <div class="wk-role">Data Engineering Intern</div>
+      <div class="wk-org">Phoenix Global</div>
+      <div class="wk-desc">Designed and deployed AWS serverless ML inference pipeline processing 500+ daily records. Implemented GitLab CI/CD reducing deployment steps by 60%.</div>
+      <div class="wk-tags"><span class="wt">AWS</span><span class="wt">Lambda</span><span class="wt">CI/CD</span><span class="wt">Docker</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- PROJECTS -->
+<section id="projects">
+  <div class="sec-lbl">AI Projects</div>
+  <div class="proj-grid">
+    <a href="project1_datachat.html" target="_blank" class="proj-card rv">
+      <div class="proj-num">01 / DataChat</div>
+      <div class="proj-name">AI Data Analyst</div>
+      <div class="proj-desc">Upload any CSV and ask questions in plain English. AI analyzes the data, generates charts, explains statistical patterns, and answers follow-up questions in a conversational interface.</div>
+      <div class="proj-foot">
+        <div class="proj-stack"><span class="ptg">Claude API</span><span class="ptg">LangChain</span><span class="ptg">Chart.js</span><span class="ptg">PapaParse</span></div>
+        <div style="display:flex;align-items:center;gap:10px"><span class="proj-live">LIVE</span><span class="proj-arrow">↗</span></div>
+      </div>
+    </a>
+    <a href="project2_dochat.html" target="_blank" class="proj-card rv d1">
+      <div class="proj-num">02 / DoChat</div>
+      <div class="proj-name">RAG Document Chatbot</div>
+      <div class="proj-desc">Paste any documents and get answers with source citations. Full Retrieval-Augmented Generation pipeline: chunking, FAISS vector indexing, semantic retrieval, and LLM synthesis.</div>
+      <div class="proj-foot">
+        <div class="proj-stack"><span class="ptg">RAG</span><span class="ptg">FAISS</span><span class="ptg">sentence-transformers</span><span class="ptg">LangChain</span></div>
+        <div style="display:flex;align-items:center;gap:10px"><span class="proj-live">LIVE</span><span class="proj-arrow">↗</span></div>
+      </div>
+    </a>
+    <a href="project3_mlpred.html" target="_blank" class="proj-card rv d2">
+      <div class="proj-num">03 / PredictIQ</div>
+      <div class="proj-name">ML Prediction Dashboard</div>
+      <div class="proj-desc">Customer churn predictor with XGBoost, SHAP waterfall explainability, ROC curves, feature importance charts, and AI-generated insight per prediction. Full training pipeline included.</div>
+      <div class="proj-foot">
+        <div class="proj-stack"><span class="ptg">XGBoost</span><span class="ptg">SHAP</span><span class="ptg">FastAPI</span><span class="ptg">Chart.js</span></div>
+        <div style="display:flex;align-items:center;gap:10px"><span class="proj-live">LIVE</span><span class="proj-arrow">↗</span></div>
+      </div>
+    </a>
+    <a href="project4_jobmatch.html" target="_blank" class="proj-card rv">
+      <div class="proj-num">04 / JobMatch AI</div>
+      <div class="proj-name">Resume Analyzer</div>
+      <div class="proj-desc">Paste a resume and job description. AI scores the match, identifies skill gaps and bonus skills, generates a radar chart across 5 dimensions, and provides tailored recommendations.</div>
+      <div class="proj-foot">
+        <div class="proj-stack"><span class="ptg">NLP</span><span class="ptg">TF-IDF</span><span class="ptg">Claude API</span><span class="ptg">Radar Chart</span></div>
+        <div style="display:flex;align-items:center;gap:10px"><span class="proj-live">LIVE</span><span class="proj-arrow">↗</span></div>
+      </div>
+    </a>
+    <a href="project5_dashgen.html" target="_blank" class="proj-card wide rv d1">
+      <div class="proj-num">05 / DashGen AI — Featured Project</div>
+      <div class="proj-name">AI Dashboard Generator</div>
+      <div class="proj-desc">Describe any dashboard in plain English — Healthcare, Sales, Finance, HR, or Operations. AI generates a complete interactive dashboard with KPIs, multiple chart types, filter controls, and a data table. The most complex project: demonstrates agentic AI generating structured, renderable output from free text.</div>
+      <div class="proj-foot">
+        <div class="proj-stack"><span class="ptg">Agentic AI</span><span class="ptg">Claude API</span><span class="ptg">JSON Spec</span><span class="ptg">Chart.js</span><span class="ptg">PapaParse</span><span class="ptg">FastAPI</span></div>
+        <div style="display:flex;align-items:center;gap:10px"><span class="proj-live">LIVE</span><span class="proj-arrow">↗</span></div>
+      </div>
+    </a>
+  </div>
+
+  <!-- NOTEBOOKS & DIAGRAMS -->
+  <div style="margin-top:1px">
+    <div style="background:var(--surface);padding:20px 28px;border-top:1px solid var(--border)">
+      <div style="font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:2px;margin-bottom:16px">SUPPORTING ASSETS — NOTEBOOKS, BACKENDS & DIAGRAMS</div>
+    </div>
+    <div class="assets-grid">
+      <a href="01_datachat_eda.ipynb" target="_blank" class="asset-item">
+        <span class="asset-icon">📓</span>
+        <div><div class="asset-name">DataChat EDA</div><div class="asset-desc">EDA pipeline, LangChain Pandas agent demo, visualizations</div></div>
+      </a>
+      <a href="02_rag_pipeline.ipynb" target="_blank" class="asset-item">
+        <span class="asset-icon">📓</span>
+        <div><div class="asset-name">RAG Pipeline</div><div class="asset-desc">FAISS indexing, chunking strategy, retrieval deep dive</div></div>
+      </a>
+      <a href="03_ml_churn_model.ipynb" target="_blank" class="asset-item">
+        <span class="asset-icon">📓</span>
+        <div><div class="asset-name">ML Churn Model</div><div class="asset-desc">Full XGBoost training, SHAP explainability, ROC curves</div></div>
+      </a>
+      <a href="04_jobmatch_nlp.ipynb" target="_blank" class="asset-item">
+        <span class="asset-icon">📓</span>
+        <div><div class="asset-name">JobMatch NLP</div><div class="asset-desc">TF-IDF matching, skill taxonomy, radar visualization</div></div>
+      </a>
+      <a href="05_dashgen_demo.ipynb" target="_blank" class="asset-item">
+        <span class="asset-icon">📓</span>
+        <div><div class="asset-name">DashGen Demo</div><div class="asset-desc">Dashboard spec schema, matplotlib renderer, LLM prompt</div></div>
+      </a>
+      <a href="architecture_overview.svg" target="_blank" class="asset-item">
+        <span class="asset-icon">🗺</span>
+        <div><div class="asset-name">Architecture Overview</div><div class="asset-desc">All 5 projects + shared LLM layer + deployment</div></div>
+      </a>
+      <a href="rag_pipeline.svg" target="_blank" class="asset-item">
+        <span class="asset-icon">🗺</span>
+        <div><div class="asset-name">RAG Pipeline Diagram</div><div class="asset-desc">Index phase + query phase flow</div></div>
+      </a>
+      <a href="ml_pipeline.svg" target="_blank" class="asset-item">
+        <span class="asset-icon">🗺</span>
+        <div><div class="asset-name">ML Pipeline Diagram</div><div class="asset-desc">Data → XGBoost → SHAP → FastAPI</div></div>
+      </a>
+      <a href="jobmatch_pipeline.svg" target="_blank" class="asset-item">
+        <span class="asset-icon">🗺</span>
+        <div><div class="asset-name">JobMatch Pipeline</div><div class="asset-desc">NLP → 4 signals → outputs → LLM</div></div>
+      </a>
+      <a href="datachat.py" target="_blank" class="asset-item">
+        <span class="asset-icon">⚙️</span>
+        <div><div class="asset-name">datachat.py</div><div class="asset-desc">LangChain Pandas Agent + FastAPI — port 8000</div></div>
+      </a>
+      <a href="dochat.py" target="_blank" class="asset-item">
+        <span class="asset-icon">⚙️</span>
+        <div><div class="asset-name">dochat.py</div><div class="asset-desc">FAISS + sentence-transformers + LangChain — port 8001</div></div>
+      </a>
+      <a href="predictiq.py" target="_blank" class="asset-item">
+        <span class="asset-icon">⚙️</span>
+        <div><div class="asset-name">predictiq.py</div><div class="asset-desc">XGBoost + SHAP + model training — port 8002</div></div>
+      </a>
+      <a href="jobmatch.py" target="_blank" class="asset-item">
+        <span class="asset-icon">⚙️</span>
+        <div><div class="asset-name">jobmatch.py</div><div class="asset-desc">TF-IDF + skill taxonomy NLP — port 8003</div></div>
+      </a>
+      <a href="dashgen.py" target="_blank" class="asset-item">
+        <span class="asset-icon">⚙️</span>
+        <div><div class="asset-name">dashgen.py</div><div class="asset-desc">LLM spec generation + rule-based fallback — port 8004</div></div>
+      </a>
+      <a href="README.md" target="_blank" class="asset-item">
+        <span class="asset-icon">📄</span>
+        <div><div class="asset-name">README</div><div class="asset-desc">Full file structure, model metrics, deployment guide</div></div>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- EDUCATION -->
+<section>
+  <div class="sec-lbl">Education & Certifications</div>
+  <div class="edu-grid">
+    <div class="edu-cell rv">
+      <div class="edu-deg">M.S. Data Analytics</div>
+      <div class="edu-sch">University of Illinois Springfield</div>
+      <div class="edu-yr">Graduated May 2026</div>
+      <div class="edu-sub">Statistical Methods, Machine Learning, Big Data Analytics, Advanced Database Concepts, Predictive Analytics, Time Series Analysis, Operations Research</div>
+    </div>
+    <div class="edu-cell rv d1">
+      <div class="edu-deg">B.Tech Electronics & Communication Engineering</div>
+      <div class="edu-sch">GITAM University — AI/ML Specialization</div>
+      <div class="edu-yr">July 2024</div>
+      <div class="edu-sub">Neural Networks, Signal Processing, Mathematical Modeling, Probability & Statistics, Digital Communications</div>
+      <div class="cert-row">
+        <div class="cert-line"><span class="cert-name">Generative AI Fundamentals</span><span class="cert-yr">Databricks 2026</span></div>
+        <div class="cert-line"><span class="cert-name">Neural Networks & Deep Learning</span><span class="cert-yr">deeplearning.ai</span></div>
+        <div class="cert-line"><span class="cert-name">AI/ML Specialization</span><span class="cert-yr">In Progress</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<div class="contact-wrap" id="contact">
+  <div class="contact-bg-txt">Nithin</div>
+  <span class="contact-lbl">Let's work together</span>
+  <h2 class="contact-ttl">Ready to<br>build <span class="oi">something</span><br>real?</h2>
+  <a href="mailto:nithindadi1@gmail.com" class="contact-email">nithindadi1@gmail.com</a>
+  <div class="clinks">
+    <a href="https://linkedin.com/in/nithin-dadi" class="cl" target="_blank">LinkedIn</a>
+    <a href="https://github.com/nithindadi1-ops" class="cl" target="_blank">GitHub</a>
+    <a href="tel:2177615403" class="cl">+1 (217) 761-5403</a>
+  </div>
+</div>
+
+<footer>
+  <span>Nithin Dadi 2026</span>
+  <span>AI & Data Analyst</span>
+  <span>Available Immediately</span>
+</footer>
+
+<script>
+// CURSOR
+const cd=document.getElementById('cd'),cr=document.getElementById('cr');
+let mx=0,my=0,cx=0,cy=0;
+document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cd.style.left=mx+'px';cd.style.top=my+'px'});
+(function loop(){cx+=(mx-cx)*.13;cy+=(my-cy)*.13;cr.style.left=cx+'px';cr.style.top=cy+'px';requestAnimationFrame(loop)})();
+document.querySelectorAll('a,button,.proj-card,.sk-item,.asset-item').forEach(el=>{
+  el.addEventListener('mouseenter',()=>cr.classList.add('big'));
+  el.addEventListener('mouseleave',()=>cr.classList.remove('big'));
+});
+// REVEAL
+const obs=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('in')})},{threshold:.08});
+document.querySelectorAll('.rv').forEach(el=>obs.observe(el));
+// SKILL BARS
+const sObs=new IntersectionObserver(es=>{
+  es.forEach(e=>{if(e.isIntersecting)e.target.querySelectorAll('.sk-fill').forEach(f=>{setTimeout(()=>f.style.width=f.dataset.w+'%',100)})});
+},{threshold:.15});
+document.querySelectorAll('section').forEach(s=>sObs.observe(s));
+</script>
+</body>
+</html>
