@@ -1,4 +1,4 @@
-# AI Portfolio — Nithin Dadi
+# Nithin Dadi Portfolio
 
 Four production-ready AI applications demonstrating LLM integration, RAG pipelines, ML explainability, and AI automation.
 
