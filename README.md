@@ -1,4 +1,4 @@
-# AI Portfolio — Nithin Dadi
+# AI Portfolio - Nithin Dadi
 
 > Five production-ready AI applications demonstrating LLM integration, RAG pipelines, ML explainability, NLP matching, and agentic dashboard generation.
 
@@ -116,7 +116,7 @@ python dashgen.py                         # port 8004
 
 ## Author
 
-**Nithin Dadi** — Data Analyst & AI Engineer
+**Nithin Dadi** - Data Analyst & AI Engineer
 
 M.S. Data Analytics, University of Illinois Springfield (May 2026)
 
